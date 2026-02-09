@@ -1,71 +1,71 @@
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Interface pour accéder à l'historique des appels.
+    /// Interface to access call history records.
     /// </summary>
     public interface IPluginCallHistory
     {
         /// <summary>
-        /// Récupère les derniers appels.
+        /// Retrieves the most recent calls.
         /// </summary>
-        /// <param name="count">Nombre d'appels à récupérer (max 100)</param>
-        /// <returns>Liste des appels du plus récent au plus ancien</returns>
+        /// <param name="count">Number of calls to retrieve (max 100)</param>
+        /// <returns>List of calls from newest to oldest</returns>
         IReadOnlyList<CallHistoryEntry> GetRecentCalls(int count = 50);
 
         /// <summary>
-        /// Récupère les appels dans une période donnée.
+        /// Retrieves calls within a specific time period.
         /// </summary>
         IReadOnlyList<CallHistoryEntry> GetCallsBetween(DateTime from, DateTime to);
 
         /// <summary>
-        /// Récupère les appels pour un numéro spécifique.
+        /// Retrieves all calls associated with a specific phone number.
         /// </summary>
         IReadOnlyList<CallHistoryEntry> GetCallsForNumber(string phoneNumber);
 
         /// <summary>
-        /// Nombre total d'appels dans l'historique.
+        /// Total number of calls in the history.
         /// </summary>
         int TotalCount { get; }
 
         /// <summary>
-        /// Événement déclenché quand un nouvel appel est ajouté à l'historique.
+        /// Event triggered when a new call is added to the history.
         /// </summary>
         event Action<CallHistoryEntry>? OnCallAdded;
     }
 
     /// <summary>
-    /// Représente une entrée dans l'historique des appels.
+    /// Represents an entry in the call history.
     /// </summary>
     public sealed class CallHistoryEntry
     {
-        /// <summary>
+        /// <summary>Unique record identifier</summary>
         public string Id { get; set; } = "";
 
-        /// <summary>Numéro distant (appelant ou appelé selon direction)</summary>
+        /// <summary>Remote phone number (caller or callee depending on direction)</summary>
         public string PhoneNumber { get; set; } = "";
 
-        /// <summary>Nom du contact (si trouvé)</summary>
+        /// <summary>Contact name (if found in contacts)</summary>
         public string? ContactName { get; set; }
 
-        /// <summary>Direction de l'appel</summary>
+        /// <summary>Call direction</summary>
         public CallDirection Direction { get; set; }
 
-        /// <summary>Date et heure de l'appel</summary>
+        /// <summary>Date and time of the call</summary>
         public DateTime Timestamp { get; set; }
 
-        /// <summary>Durée de l'appel</summary>
+        /// <summary>Total call duration</summary>
         public TimeSpan Duration { get; set; }
 
-        /// <summary>L'appel a été décroché</summary>
+        /// <summary>Indicates if the call was answered</summary>
         public bool WasAnswered { get; set; }
 
-        /// <summary>L'appel a été enregistré</summary>
+        /// <summary>Indicates if the call was recorded</summary>
         public bool WasRecorded { get; set; }
 
-        /// <summary>Chemin du fichier d'enregistrement (si enregistré)</summary>
+        /// <summary>Path to the audio recording file (if recorded)</summary>
         public string? RecordingPath { get; set; }
 
-        /// <summary>Notes associées à l'appel</summary>
+        /// <summary>User notes associated with the call</summary>
         public string? Notes { get; set; }
     }
 }

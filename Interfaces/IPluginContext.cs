@@ -3,128 +3,128 @@ using Microsoft.Extensions.Logging;
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Contexte fourni aux plugins pour accéder aux services SipLine.
+    /// Context provided to plugins to access SipLine services.
     /// </summary>
     public interface IPluginContext
     {
         /// <summary>
-        /// Service SIP pour écouter/contrôler les appels.
+        /// SIP service to listen to and control calls.
         /// </summary>
         IPluginSipService SipService { get; }
 
         /// <summary>
-        /// Historique des appels.
+        /// Access to call history records.
         /// </summary>
         IPluginCallHistory CallHistory { get; }
 
         /// <summary>
-        /// Logger pour le plugin (préfixé avec le nom du plugin).
+        /// Logger for the plugin (prefixed with the plugin name).
         /// </summary>
         ILogger Logger { get; }
 
         /// <summary>
-        /// Dossier de données dédié au plugin pour stocker ses fichiers.
-        /// Exemple: %AppData%/SipLine/plugins/sipline.plugin.ovh/
+        /// Dedicated data folder for the plugin to store its local files.
+        /// Example: %AppData%/SipLine/plugins/sipline.plugin.ovh/
         /// </summary>
         string PluginDataPath { get; }
 
         /// <summary>
-        /// Affiche une notification Windows Toast.
+        /// Shows a native Windows Toast notification.
         /// </summary>
         void ShowNotification(string title, string message, NotificationSeverity severity = NotificationSeverity.Info);
 
         /// <summary>
-        /// Affiche un message dans le snackbar de l'application.
+        /// Shows a message in the application's snackbar.
         /// </summary>
         void ShowSnackbar(string message, SnackbarSeverity severity = SnackbarSeverity.Info);
 
         /// <summary>
-        /// Ajoute un message dans le log de l'application.
+        /// Adds a message to the application's internal logs.
         /// </summary>
         void AddLog(string message, string level = "Info");
 
         /// <summary>
-        /// Enregistre un bouton dans la barre d'outils principale.
+        /// Registers a button in the main sidebar toolbar.
         /// </summary>
         void RegisterToolbarButton(PluginToolbarButton button);
 
         /// <summary>
-        /// Supprime un bouton de la barre d'outils.
+        /// Removes a button from the sidebar toolbar.
         /// </summary>
         void UnregisterToolbarButton(string buttonId);
 
         /// <summary>
-        /// Enregistre un onglet dans les paramètres.
+        /// Registers a new tab in the settings window.
         /// </summary>
         void RegisterSettingsTab(PluginSettingsTab tab);
 
         /// <summary>
-        /// Supprime un onglet des paramètres.
+        /// Removes a tab from the settings window.
         /// </summary>
         void UnregisterSettingsTab(string tabId);
 
         /// <summary>
-        /// Enregistre un onglet dans la barre latérale (à côté de Récents/Contacts).
+        /// Registers a tab in the main sidebar (alongside Recents/Contacts).
         /// </summary>
         void RegisterSidebarTab(PluginSidebarTab tab);
 
         /// <summary>
-        /// Supprime un onglet de la barre latérale.
+        /// Removes a tab from the main sidebar.
         /// </summary>
         void UnregisterSidebarTab(string tabId);
 
         /// <summary>
-        /// Demande l'affichage d'une vue pleine page du plugin.
-        /// La vue remplace la zone centrale de l'application.
+        /// Requests to display a full-page view for the plugin.
+        /// This view replaces the main dashboard area.
         /// </summary>
         void OpenPluginView(PluginViewRequest request);
 
         /// <summary>
-        /// Ferme la vue plugin actuellement affichée.
+        /// Closes the currently displayed full-page plugin view.
         /// </summary>
         void ClosePluginView();
 
         /// <summary>
-        /// Événement déclenché lors du changement de langue de l'application.
+        /// Event triggered when the application language changes.
         /// </summary>
         event Action<string>? OnLanguageChanged;
 
         /// <summary>
-        /// Récupère une valeur de configuration du plugin.
+        /// Retrieves a configuration value for the plugin.
         /// </summary>
         T? GetSetting<T>(string key, T? defaultValue = default);
 
         /// <summary>
-        /// Récupère une chaîne localisée via le système global de l'application.
+        /// Retrieves a localized string via the application's global localization system.
         /// </summary>
         string GetLocalizedString(string key);
 
         /// <summary>
-        /// Sauvegarde une valeur de configuration du plugin.
+        /// Saves a configuration value for the plugin.
         /// </summary>
         void SetSetting<T>(string key, T value);
 
         /// <summary>
-        /// Enregistre un ResourceManager pour la localisation globale.
-        /// Les clés de ce ResourceManager seront accessibles via le système de traduction de l'application.
+        /// Registers a ResourceManager for global localization.
+        /// Keys from this ResourceManager will be accessible via GetLocalizedString.
         /// </summary>
         void RegisterResource(System.Resources.ResourceManager resourceManager);
 
         /// <summary>
-        /// Déclare les champs de paramètres du plugin.
-        /// Ces champs seront affichés dans l'onglet Plugins des paramètres.
-        /// Si un champ a IsRequired=true et n'est pas rempli, le plugin ne s'affichera pas dans le menu.
+        /// Declares settings fields for the plugin.
+        /// These fields will be displayed in the Settings > Plugins tab.
+        /// If a field has IsRequired=true and is empty, the plugin tab will be hidden.
         /// </summary>
         void RegisterSettingsFields(IEnumerable<PluginSettingsField> fields);
 
         /// <summary>
-        /// Indique si tous les paramètres requis du plugin sont remplis.
+        /// Indicates if all required settings for the plugin are filled.
         /// </summary>
         bool AreRequiredSettingsFilled { get; }
     }
 
     /// <summary>
-    /// Sévérité des notifications
+    /// Notification severity levels
     /// </summary>
     public enum NotificationSeverity
     {
@@ -135,7 +135,7 @@ namespace SipLine.Plugin.Sdk
     }
 
     /// <summary>
-    /// Sévérité des snackbars
+    /// Snackbar severity levels
     /// </summary>
     public enum SnackbarSeverity
     {

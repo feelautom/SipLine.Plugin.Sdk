@@ -1,138 +1,138 @@
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Interface SIP exposée aux plugins.
-    /// Fournit un accès en lecture aux informations d'appel et des événements.
+    /// SIP interface exposed to plugins.
+    /// Provides read-only access to call information and events.
     /// </summary>
     public interface IPluginSipService
     {
-        #region Événements
+        #region Events
 
-        /// <summary>Appel entrant reçu</summary>
+        /// <summary>Incoming call received</summary>
         event Action<CallInfo>? OnCallIncoming;
 
-        /// <summary>Appel sortant initié</summary>
+        /// <summary>Outgoing call initiated</summary>
         event Action<CallInfo>? OnCallOutgoing;
 
-        /// <summary>Appel décroché (entrant ou sortant)</summary>
+        /// <summary>Call answered (incoming or outgoing)</summary>
         event Action<CallInfo>? OnCallAnswered;
 
-        /// <summary>Appel terminé</summary>
+        /// <summary>Call ended</summary>
         event Action<CallEndedInfo>? OnCallEnded;
 
-        /// <summary>Appel mis en attente</summary>
+        /// <summary>Call placed on hold</summary>
         event Action<CallInfo>? OnCallHeld;
 
-        /// <summary>Appel repris (fin d'attente)</summary>
+        /// <summary>Call resumed from hold</summary>
         event Action<CallInfo>? OnCallResumed;
 
-        /// <summary>Touche DTMF reçue</summary>
+        /// <summary>DTMF digit received</summary>
         event Action<DtmfInfo>? OnDtmfReceived;
 
-        /// <summary>Statut d'enregistrement SIP changé</summary>
+        /// <summary>SIP registration status changed</summary>
         event Action<RegistrationStatus>? OnRegistrationChanged;
 
         #endregion
 
-        #region État actuel
+        #region Current State
 
-        /// <summary>Statut d'enregistrement actuel</summary>
+        /// <summary>Current registration status</summary>
         RegistrationStatus RegistrationStatus { get; }
 
-        /// <summary>Un appel est en cours</summary>
+        /// <summary>Indicates if a call is currently active</summary>
         bool IsInCall { get; }
 
-        /// <summary>Informations sur l'appel en cours (null si pas d'appel)</summary>
+        /// <summary>Active call information (null if no active call)</summary>
         CallInfo? CurrentCall { get; }
 
-        /// <summary>Numéro SIP de l'utilisateur</summary>
+        /// <summary>User's SIP extension/number</summary>
         string? SipUser { get; }
 
         #endregion
 
-        #region Actions (limité pour les plugins)
+        #region Actions
 
         /// <summary>
-        /// Initie un appel vers un numéro.
+        /// Initiates an outgoing call.
         /// </summary>
-        /// <param name="destination">Numéro à appeler</param>
-        /// <returns>True si l'appel a été initié</returns>
+        /// <param name="destination">Target phone number or extension</param>
+        /// <returns>True if the call request was successfully initiated</returns>
         Task<bool> MakeCallAsync(string destination);
 
         /// <summary>
-        /// Envoie une touche DTMF pendant un appel.
+        /// Sends a DTMF digit during an active call.
         /// </summary>
-        /// <param name="digit">Touche (0-9, *, #)</param>
+        /// <param name="digit">Digit to send (0-9, *, #)</param>
         void SendDtmf(char digit);
 
         #endregion
     }
 
     /// <summary>
-    /// Informations sur un appel
+    /// Detailed call information
     /// </summary>
     public sealed class CallInfo
     {
-        /// <summary>Identifiant unique de l'appel</summary>
+        /// <summary>Unique call identifier</summary>
         public string CallId { get; set; } = "";
 
-        /// <summary>Numéro de l'appelant</summary>
+        /// <summary>Caller's phone number</summary>
         public string CallerNumber { get; set; } = "";
 
-        /// <summary>Nom de l'appelant (si disponible)</summary>
+        /// <summary>Caller's display name (if available)</summary>
         public string? CallerName { get; set; }
 
-        /// <summary>Numéro appelé</summary>
+        /// <summary>Called phone number</summary>
         public string CalleeNumber { get; set; } = "";
 
-        /// <summary>Direction de l'appel</summary>
+        /// <summary>Call direction</summary>
         public CallDirection Direction { get; set; }
 
-        /// <summary>Heure de début de l'appel</summary>
+        /// <summary>Call start time</summary>
         public DateTime StartTime { get; set; }
 
-        /// <summary>L'appel est en attente</summary>
+        /// <summary>Indicates if the call is on hold</summary>
         public bool IsOnHold { get; set; }
 
-        /// <summary>L'appel est enregistré</summary>
+        /// <summary>Indicates if the call is being recorded</summary>
         public bool IsRecording { get; set; }
     }
 
     /// <summary>
-    /// Informations sur la fin d'un appel
+    /// Information about a finished call
     /// </summary>
     public sealed class CallEndedInfo
     {
-        /// <summary>Informations de l'appel</summary>
+        /// <summary>Final call information</summary>
         public CallInfo Call { get; set; } = new();
 
-        /// <summary>Durée de l'appel</summary>
+        /// <summary>Total call duration</summary>
         public TimeSpan Duration { get; set; }
 
-        /// <summary>Raison de la fin</summary>
+        /// <summary>Reason for call termination</summary>
         public CallEndReason Reason { get; set; }
 
-        /// <summary>Code SIP de fin (ex: 200, 486, 603)</summary>
+        /// <summary>SIP termination code (e.g., 200, 486, 603)</summary>
         public int? SipCode { get; set; }
     }
 
     /// <summary>
-    /// Informations DTMF
+    /// DTMF signal information
     /// </summary>
     public sealed class DtmfInfo
     {
-        /// <summary>Touche pressée</summary>
+        /// <summary>Pressed digit</summary>
         public char Digit { get; set; }
 
-        /// <summary>Durée en millisecondes</summary>
+        /// <summary>Duration in milliseconds</summary>
         public int DurationMs { get; set; }
 
-        /// <summary>Identifiant de l'appel</summary>
+        /// <summary>Associated call ID</summary>
         public string CallId { get; set; } = "";
     }
 
     /// <summary>
-    /// Direction de l'appel
+    /// Call direction
     /// </summary>
     public enum CallDirection
     {
@@ -141,38 +141,38 @@ namespace SipLine.Plugin.Sdk
     }
 
     /// <summary>
-    /// Raison de fin d'appel
+    /// Reason for call termination
     /// </summary>
     public enum CallEndReason
     {
-        /// <summary>Raccroché normalement</summary>
+        /// <summary>Hung up normally</summary>
         Normal,
-        /// <summary>Occupé</summary>
+        /// <summary>Recipient was busy</summary>
         Busy,
-        /// <summary>Pas de réponse</summary>
+        /// <summary>No answer from recipient</summary>
         NoAnswer,
-        /// <summary>Refusé</summary>
+        /// <summary>Call was rejected</summary>
         Rejected,
-        /// <summary>Erreur réseau</summary>
+        /// <summary>Network or server error</summary>
         NetworkError,
-        /// <summary>Annulé par l'appelant</summary>
+        /// <summary>Cancelled by caller</summary>
         Cancelled,
-        /// <summary>Autre raison</summary>
+        /// <summary>Other reason</summary>
         Other
     }
 
     /// <summary>
-    /// Statut d'enregistrement SIP
+    /// SIP Registration status
     /// </summary>
     public enum RegistrationStatus
     {
-        /// <summary>Non enregistré</summary>
+        /// <summary>Not registered</summary>
         Unregistered,
-        /// <summary>En cours d'enregistrement</summary>
+        /// <summary>Registration in progress</summary>
         Registering,
-        /// <summary>Enregistré avec succès</summary>
+        /// <summary>Successfully registered</summary>
         Registered,
-        /// <summary>Échec d'enregistrement</summary>
+        /// <summary>Registration failed</summary>
         Failed
     }
 }

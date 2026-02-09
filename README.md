@@ -1,6 +1,4 @@
-﻿# SipLine Plugin SDK
-
-![SipLine SDK Preview](assets/sdk-preview.png)
+# SipLine Plugin SDK
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![Framework](https://img.shields.io/badge/.NET-9.0-purple)
@@ -20,19 +18,19 @@ The official SDK for developing plugins for **SipLine**, the professional SIP so
 
 To start building a plugin, create a new **.NET 9.0 Windows Class Library** and reference the SDK:
 
-`xml
+```xml
 <ItemGroup>
     <PackageReference Include="SipLine.Plugin.Sdk" Version="1.0.0" />
 </ItemGroup>
-`
+```
 
-> **Note:** Ensure you set <Private>false</Private> and <ExcludeAssets>runtime</ExcludeAssets> for the SDK reference to avoid DLL conflicts at runtime.
+> **Note:** Ensure you set `<Private>false</Private>` and `<ExcludeAssets>runtime</ExcludeAssets>` for the SDK reference to avoid DLL conflicts at runtime.
 
 ## ⚡ Quick Start
 
-Implement the ISipLinePlugin interface:
+Implement the `ISipLinePlugin` interface:
 
-`csharp
+```csharp
 using SipLine.Plugin.Sdk;
 using Microsoft.Extensions.Logging;
 
@@ -44,7 +42,7 @@ public class MyAwesomePlugin : ISipLinePlugin
     public Version Version => new(1, 0, 0);
     
     // Lucide Icon Path data
-    public string IconPathData = "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5";
+    public string IconPathData => "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5";
 
     private IPluginContext _context;
 
@@ -70,18 +68,18 @@ public class MyAwesomePlugin : ISipLinePlugin
         return Task.CompletedTask;
     }
 }
-`
+```
 
 ## 🏗️ Architecture
 
-Your plugin interacts with SipLine through the IPluginContext.
+Your plugin interacts with SipLine through the `IPluginContext`.
 
 | Service | Usage |
 |---------|-------|
-| IPluginContext.SipService | Call control (Answer, Hangup, Transfer) |
-| IPluginContext.CallHistory | Access past logs |
-| IPluginContext.RegisterSidebarTab | Add custom XAML views to the main menu |
-| IPluginContext.PluginDataPath | Path to store your local data/files |
+| `IPluginContext.SipService` | Call control (Answer, Hangup, Transfer) |
+| `IPluginContext.CallHistory` | Access past logs |
+| `IPluginContext.RegisterSidebarTab` | Add custom XAML views to the main menu |
+| `IPluginContext.PluginDataPath` | Path to store your local data/files |
 
 ## 🤝 Contributing
 

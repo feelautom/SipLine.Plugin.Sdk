@@ -3,78 +3,78 @@ using SipLine.Plugin.Sdk.Licensing;
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Interface principale que chaque plugin SipLine doit implémenter.
+    /// Main interface that every SipLine plugin must implement.
     /// </summary>
     public interface ISipLinePlugin : IDisposable
     {
         /// <summary>
-        /// Identifiant unique du plugin (ex: "sipline.plugin.ovh").
-        /// Utilisé pour la configuration et le stockage des settings.
+        /// Unique identifier for the plugin (e.g., "sipline.plugin.ovh").
+        /// Used for configuration and settings storage.
         /// </summary>
         string Id { get; }
 
         /// <summary>
-        /// Type de licence du plugin.
-        /// - Integrated: Plugin intégré gratuit (pas de licence)
-        /// - Community: Plugin communautaire gratuit (pas de licence)
-        /// - Commercial: Plugin payant (licence requise)
+        /// License type for the plugin.
+        /// - Integrated: Free built-in plugin (no license)
+        /// - Community: Free community plugin (no license)
+        /// - Commercial: Paid plugin (license required)
         /// </summary>
         PluginLicenseType LicenseType => PluginLicenseType.Community;
 
         /// <summary>
-        /// Nom affiché dans l'interface utilisateur.
+        /// Name displayed in the user interface.
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Version du plugin.
+        /// Plugin version.
         /// </summary>
         Version Version { get; }
 
         /// <summary>
-        /// Auteur du plugin.
+        /// Plugin author.
         /// </summary>
         string Author { get; }
 
         /// <summary>
-        /// Description courte du plugin (1-2 lignes).
+        /// Short description of the plugin (1-2 lines).
         /// </summary>
         string Description { get; }
 
         /// <summary>
-        /// URL du site web ou dépôt du plugin (optionnel).
+        /// Website or repository URL for the plugin (optional).
         /// </summary>
         string? WebsiteUrl { get; }
 
         /// <summary>
-        /// Icône du plugin au format Geometry Path Data (SVG path).
-        /// Si null, une icône par défaut sera utilisée.
+        /// Plugin icon in Geometry Path Data format (SVG path).
+        /// If null, a default icon will be used.
         /// </summary>
         string? IconPathData { get; }
 
         /// <summary>
-        /// Appelé au chargement du plugin.
-        /// C'est ici que le plugin s'initialise et s'abonne aux événements.
+        /// Called when the plugin is loaded.
+        /// The plugin should initialize and subscribe to events here.
         /// </summary>
-        /// <param name="context">Contexte fournissant l'accès aux services SipLine</param>
+        /// <param name="context">Context providing access to SipLine services</param>
         Task InitializeAsync(IPluginContext context);
 
         /// <summary>
-        /// Appelé à l'arrêt de l'application.
-        /// Le plugin doit se désabonner des événements et libérer ses ressources.
+        /// Called when the application is stopping.
+        /// The plugin must unsubscribe from events and release resources.
         /// </summary>
         Task ShutdownAsync();
 
         /// <summary>
-        /// Indique si le plugin a une interface de configuration.
+        /// Indicates if the plugin has a custom configuration UI.
         /// </summary>
         bool HasSettingsUI { get; }
 
         /// <summary>
-        /// Retourne le UserControl WPF de configuration.
-        /// Appelé uniquement si HasSettingsUI = true.
+        /// Returns the WPF UserControl for configuration.
+        /// Called only if HasSettingsUI = true.
         /// </summary>
-        /// <returns>Un UserControl WPF ou null</returns>
+        /// <returns>A WPF UserControl or null</returns>
         object? GetSettingsUI();
     }
 }

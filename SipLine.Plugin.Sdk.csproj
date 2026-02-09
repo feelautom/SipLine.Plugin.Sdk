@@ -8,11 +8,19 @@
 
     <!-- NuGet Package Info -->
     <PackageId>SipLine.Plugin.Sdk</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Franck</Authors>
-    <Description>SDK pour développer des plugins SipLine</Description>
-    <PackageTags>sipline;plugin;voip;sip</PackageTags>
+    <Description>Official SDK for building SipLine Softphone plugins. Provides interfaces for call control, UI extensions, and system integration.</Description>
+    <PackageTags>sipline;plugin;voip;sip;sdk;softphone</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/feelautom/SipLine.Plugin.Sdk</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
