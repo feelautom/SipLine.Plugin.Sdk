@@ -1,4 +1,7 @@
-# SipLine Plugin SDK
+﻿# SipLine Plugin SDK
+
+![SipLine SDK Preview](assets/sdk-preview.png)
+
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![Framework](https://img.shields.io/badge/.NET-9.0-purple)
@@ -6,7 +9,7 @@
 
 The official SDK for developing plugins for **SipLine**, the professional SIP softphone. This SDK allows you to extend the application's functionality, add UI elements, and interact with SIP calls.
 
-## 🚀 Features
+## ðŸš€ Features
 
 *   **UI Integration**: Add tabs to the sidebar, buttons to the toolbar, or create full-page views using WPF.
 *   **SIP Events**: Intercept incoming calls, detect outgoing calls, and monitor call state changes.
@@ -14,7 +17,7 @@ The official SDK for developing plugins for **SipLine**, the professional SIP so
 *   **Notifications**: Trigger native Windows toasts or in-app snackbars.
 *   **Audio**: Access audio device events (mute, volume).
 
-## 📦 Installation
+## ðŸ“¦ Installation
 
 To start building a plugin, create a new **.NET 9.0 Windows Class Library** and reference the SDK:
 
@@ -26,7 +29,7 @@ To start building a plugin, create a new **.NET 9.0 Windows Class Library** and 
 
 > **Note:** Ensure you set `<Private>false</Private>` and `<ExcludeAssets>runtime</ExcludeAssets>` for the SDK reference to avoid DLL conflicts at runtime.
 
-## ⚡ Quick Start
+## âš¡ Quick Start
 
 Implement the `ISipLinePlugin` interface:
 
@@ -70,7 +73,7 @@ public class MyAwesomePlugin : ISipLinePlugin
 }
 ```
 
-## 🏗️ Architecture
+## ðŸ—ï¸ Architecture
 
 Your plugin interacts with SipLine through the `IPluginContext`.
 
@@ -81,10 +84,10 @@ Your plugin interacts with SipLine through the `IPluginContext`.
 | `IPluginContext.RegisterSidebarTab` | Add custom XAML views to the main menu |
 | `IPluginContext.PluginDataPath` | Path to store your local data/files |
 
-## 🤝 Contributing
+## ðŸ¤ Contributing
 
 Pull requests are welcome! Please ensure your code adheres to the existing coding standards.
 
-## 📄 License
+## ðŸ“„ License
 
 This project is licensed under the MIT License.
