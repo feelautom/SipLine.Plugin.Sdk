@@ -6,6 +6,14 @@
 
 The official SDK for developing plugins for **SipLine**, the professional SIP softphone. This SDK allows you to extend the application's functionality, add UI elements, and interact with SIP calls.
 
+---
+
+### 🌐 Official Website
+For more information, downloads, and documentation about the softphone itself, visit:  
+**[https://sipline.feelautom.fr](https://sipline.feelautom.fr)**
+
+---
+
 ## 🚀 Features
 
 *   **UI Integration**: Add tabs to the sidebar, buttons to the toolbar, or create full-page views using WPF.
