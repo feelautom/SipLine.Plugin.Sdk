@@ -76,7 +76,7 @@ public sealed class PluginSettingsField : INotifyPropertyChanged
     /// </summary>
     public Action<string, string?, string?>? OnValueChanged { get; set; }
 
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         if (propertyName == nameof(Value) && OnValueChanged != null && PluginId != null)

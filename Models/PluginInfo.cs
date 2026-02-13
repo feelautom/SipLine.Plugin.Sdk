@@ -197,7 +197,7 @@ namespace SipLine.Plugin.Sdk
         /// </summary>
         public bool ShouldShowInMenu => IsEnabled && IsLicenseValid && AreRequiredSettingsFilled;
 
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
