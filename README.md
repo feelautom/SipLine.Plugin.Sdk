@@ -96,3 +96,7 @@ Pull requests are welcome! Please ensure your code adheres to the existing codin
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+## Author
+
+Built by [FeelAutom](https://feelautom.fr) — contact@feelautom.fr
