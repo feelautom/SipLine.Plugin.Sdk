@@ -97,27 +97,4 @@ public static class LicenseValidator
         }
     }
 
-    /// <summary>
-    /// Génère une nouvelle paire de clés RSA (pour usage interne uniquement).
-    /// </summary>
-    public static (string publicKey, string privateKey) GenerateKeyPair()
-    {
-        using var rsa = RSA.Create(2048);
-        return (rsa.ToXmlString(false), rsa.ToXmlString(true));
-    }
-
-    /// <summary>
-    /// Signe une licence avec la clé privée (pour le serveur de licences).
-    /// </summary>
-    public static string SignLicense(PluginLicense license, string privateKeyXml)
-    {
-        var dataToSign = $"{license.PluginId}|{license.HardwareId}|{license.LicensedTo}|{license.IssuedAt:O}|{license.ExpiresAt:O}";
-        var dataBytes = Encoding.UTF8.GetBytes(dataToSign);
-
-        using var rsa = RSA.Create();
-        rsa.FromXmlString(privateKeyXml);
-
-        var signatureBytes = rsa.SignData(dataBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        return Convert.ToBase64String(signatureBytes);
-    }
 }
