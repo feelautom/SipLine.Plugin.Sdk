@@ -23,7 +23,7 @@ jobs:
           dotnet-version: '9.0.x'
           source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
         env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
 
       - name: Restore Dependencies
         run: dotnet restore SipLine.Plugin.Sdk.csproj
@@ -35,7 +35,7 @@ jobs:
         run: dotnet pack SipLine.Plugin.Sdk.csproj --configuration Release --no-build -o out
 
       - name: Push to GitHub Packages
-        run: Get-ChildItem out/*.nupkg | foreach { dotnet nuget push $_.FullName --api-key ${{ secrets.GH_PAT }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate }
+        run: Get-ChildItem out/*.nupkg | foreach { dotnet nuget push $_.FullName --api-key ${{ secrets.NUGET_API_KEY }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate }
 
       - name: Push to NuGet.org
         if: env.NUGET_API_KEY != ''
