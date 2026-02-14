@@ -23,7 +23,7 @@ jobs:
           dotnet-version: '9.0.x'
           source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
         env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore Dependencies
         run: dotnet restore SipLine.Plugin.Sdk.csproj
