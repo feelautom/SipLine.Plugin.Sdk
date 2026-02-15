@@ -1,4 +1,5 @@
 using SipLine.Plugin.Sdk.Licensing;
+using SipLine.Plugin.Sdk.Enums;
 
 namespace SipLine.Plugin.Sdk
 {
@@ -47,8 +48,14 @@ namespace SipLine.Plugin.Sdk
         string? WebsiteUrl { get; }
 
         /// <summary>
+        /// Preferred standard icon for the plugin.
+        /// If set, this takes precedence over IconPathData.
+        /// </summary>
+        PluginIcon? Icon => null;
+
+        /// <summary>
         /// Plugin icon in Geometry Path Data format (SVG path).
-        /// If null, a default icon will be used.
+        /// If null and Icon is null, a default icon will be used.
         /// </summary>
         string? IconPathData { get; }
 

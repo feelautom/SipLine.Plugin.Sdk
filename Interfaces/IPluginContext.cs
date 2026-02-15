@@ -90,13 +90,25 @@ namespace SipLine.Plugin.Sdk
         event Action<string>? OnLanguageChanged;
 
         /// <summary>
+        /// Event triggered when audio devices are added or removed.
+        /// </summary>
+        event Action? OnDevicesChanged;
+
+        /// <summary>
         /// Retrieves a configuration value for the plugin.
         /// </summary>
         T? GetSetting<T>(string key, T? defaultValue = default);
 
         /// <summary>
+        /// Provides access to the plugin's localized resources.
+        /// Replaces <see cref="GetLocalizedString(string)"/> and <see cref="RegisterResource(System.Resources.ResourceManager)"/>.
+        /// </summary>
+        IPluginLocalization Localization { get; }
+
+        /// <summary>
         /// Retrieves a localized string via the application's global localization system.
         /// </summary>
+        [Obsolete("Use context.Localization.GetString(key) instead.")]
         string GetLocalizedString(string key);
 
         /// <summary>
@@ -108,6 +120,7 @@ namespace SipLine.Plugin.Sdk
         /// Registers a ResourceManager for global localization.
         /// Keys from this ResourceManager will be accessible via GetLocalizedString.
         /// </summary>
+        [Obsolete("Use context.Localization instead. The plugin's primary ResourceManager is automatically detected.")]
         void RegisterResource(System.Resources.ResourceManager resourceManager);
 
         /// <summary>

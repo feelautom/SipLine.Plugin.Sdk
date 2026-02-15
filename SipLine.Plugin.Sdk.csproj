@@ -5,11 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <!-- NuGet Package Info -->
     <PackageId>SipLine.Plugin.Sdk</PackageId>
-    <Version>1.0.4</Version>
+    <Version>$([System.IO.File]::ReadAllText($(MSBuildProjectDirectory)/../../sipline-version.txt).Trim())</Version>
     <Authors>Franck</Authors>
     <Description>Official SDK for building SipLine Softphone plugins. Provides interfaces for call control, UI extensions, and system integration.</Description>
     <PackageTags>sipline;plugin;voip;sip;sdk;softphone</PackageTags>
@@ -33,7 +32,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
-    <PackageReference Include="System.Management" Version="9.0.0" />
+    <PackageReference Include="SoftLicence.SDK" Version="1.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.2" />
   </ItemGroup>
 
 </Project>

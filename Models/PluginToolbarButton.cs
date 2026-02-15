@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using SipLine.Plugin.Sdk.Enums;
 
 namespace SipLine.Plugin.Sdk
 {
@@ -16,6 +17,11 @@ namespace SipLine.Plugin.Sdk
         /// Tooltip affiché au survol.
         /// </summary>
         public string Tooltip { get; set; } = "";
+
+        /// <summary>
+        /// Icône standard (prioritaire sur IconPathData).
+        /// </summary>
+        public PluginIcon? Icon { get; set; }
 
         /// <summary>
         /// Icône au format Geometry Path Data (SVG path).
