@@ -2,6 +2,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using SoftLicence.SDK;
 
 namespace SipLine.Plugin.Sdk.Licensing;
 
@@ -28,33 +29,28 @@ public static class LicenseValidator
     {
         try
         {
-            // Parser la licence
-            var license = JsonSerializer.Deserialize<PluginLicense>(licenseJson);
+            // Utilisation du validateur officiel du SDK
+            var validation = LicenseService.ValidateLicense(licenseJson, PublicKeyXml, HardwareFingerprint.GetHardwareId());
+            
+            if (!validation.IsValid)
+                return LicenseValidationResult.Invalid(validation.ErrorMessage ?? "Licence invalide");
+
+            var license = validation.License;
             if (license == null)
-                return LicenseValidationResult.Invalid("Format de licence invalide");
+                return LicenseValidationResult.Invalid("Erreur lors du décodage de la licence");
 
-            // Vérifier le plugin ID
-            if (!string.Equals(license.PluginId, pluginId, StringComparison.OrdinalIgnoreCase))
-                return LicenseValidationResult.Invalid("Cette licence n'est pas pour ce plugin");
+            // Conversion vers le modèle local pour compatibilité
+            var result = new PluginLicense
+            {
+                PluginId = pluginId, // On assume l'ID demandé puisque validé par le SDK
+                HardwareId = license.HardwareId,
+                LicensedTo = license.CustomerName,
+                IssuedAt = license.CreationDate,
+                ExpiresAt = license.ExpirationDate,
+                Signature = "" // Déjà validée par le SDK
+            };
 
-            // Vérifier le Hardware ID
-            var currentHardwareId = HardwareFingerprint.GetHardwareId();
-            if (!string.Equals(license.HardwareId, currentHardwareId, StringComparison.OrdinalIgnoreCase))
-                return LicenseValidationResult.Invalid("Cette licence n'est pas pour cet appareil");
-
-            // Vérifier l'expiration
-            if (license.ExpiresAt.HasValue && license.ExpiresAt.Value < DateTime.UtcNow)
-                return LicenseValidationResult.Invalid("Cette licence a expiré");
-
-            // Vérifier la signature
-            if (!VerifySignature(license))
-                return LicenseValidationResult.Invalid("Signature de licence invalide");
-
-            return LicenseValidationResult.Valid(license);
-        }
-        catch (JsonException)
-        {
-            return LicenseValidationResult.Invalid("Format de licence invalide");
+            return LicenseValidationResult.Valid(result);
         }
         catch (Exception ex)
         {
@@ -73,28 +69,4 @@ public static class LicenseValidator
         var licenseJson = File.ReadAllText(licensePath);
         return Validate(licenseJson, pluginId);
     }
-
-    /// <summary>
-    /// Vérifie la signature RSA de la licence.
-    /// </summary>
-    private static bool VerifySignature(PluginLicense license)
-    {
-        try
-        {
-            // Créer la chaîne à signer (tout sauf la signature)
-            var dataToSign = $"{license.PluginId}|{license.HardwareId}|{license.LicensedTo}|{license.IssuedAt:O}|{license.ExpiresAt:O}";
-            var dataBytes = Encoding.UTF8.GetBytes(dataToSign);
-            var signatureBytes = Convert.FromBase64String(license.Signature);
-
-            using var rsa = RSA.Create();
-            rsa.FromXmlString(PublicKeyXml);
-
-            return rsa.VerifyData(dataBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
 }

@@ -1,3 +1,5 @@
+using SipLine.Plugin.Sdk.Enums;
+
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
@@ -14,6 +16,11 @@ namespace SipLine.Plugin.Sdk
         /// Titre affiché dans le menu de navigation.
         /// </summary>
         public string Title { get; set; } = "";
+
+        /// <summary>
+        /// Icône standard (prioritaire sur IconPathData).
+        /// </summary>
+        public PluginIcon? Icon { get; set; }
 
         /// <summary>
         /// Icône au format Geometry Path Data (SVG path).

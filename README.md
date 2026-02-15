@@ -40,6 +40,7 @@ Implement the `ISipLinePlugin` interface:
 
 ```csharp
 using SipLine.Plugin.Sdk;
+using SipLine.Plugin.Sdk.Enums;
 using Microsoft.Extensions.Logging;
 
 public class MyAwesomePlugin : ISipLinePlugin
@@ -48,9 +49,10 @@ public class MyAwesomePlugin : ISipLinePlugin
     public string Name => "My Awesome Plugin";
     public string Description => "Adds super powers to SipLine.";
     public Version Version => new(1, 0, 0);
+    public string Author => "Me";
     
-    // Lucide Icon Path data
-    public string IconPathData => "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5";
+    // Use standard icon
+    public PluginIcon? Icon => PluginIcon.Rocket; 
 
     private IPluginContext _context;
 
@@ -63,7 +65,7 @@ public class MyAwesomePlugin : ISipLinePlugin
         _context.RegisterToolbarButton(new PluginToolbarButton
         {
             Id = "my-btn",
-            IconPathData = IconPathData,
+            Icon = PluginIcon.Star, // Or use IconPathData for custom SVG
             Command = new RelayCommand(() => _context.ShowSnackbar("Button clicked!")),
             Tooltip = "Click Me"
         });
@@ -89,6 +91,64 @@ Your plugin interacts with SipLine through the `IPluginContext`.
 | `IPluginContext.RegisterSidebarTab` | Add custom XAML views to the main menu |
 | `IPluginContext.PluginDataPath` | Path to store your local data/files |
 
+## 🎨 Theming & Styles
+
+To ensure your plugin looks native to SipLine, use the standardized theme resources provided by `PluginTheme`.
+
+```xml
+<UserControl ...
+             xmlns:theme="clr-namespace:SipLine.Plugin.Sdk.Theme;assembly=SipLine.Plugin.Sdk">
+    <Border Background="{DynamicResource {x:Static theme:PluginTheme.SurfaceBrushKey}}">
+        <TextBlock Text="Hello" Foreground="{DynamicResource {x:Static theme:PluginTheme.TextBrushKey}}"/>
+    </Border>
+</UserControl>
+```
+
+## 🌍 Localization (I18N)
+
+SipLine automatically detects `Resources.resx` files (Properties.Resources) in your plugin assembly.
+Use the context to access localized strings:
+
+```csharp
+var greeting = context.Localization.GetString("HelloMessage");
+```
+
+## 🖼️ Icons
+
+You can use standard icons from the `PluginIcon` enum instead of providing raw SVG paths:
+
+```csharp
+public PluginIcon? Icon => PluginIcon.Message;
+```
+
+## 🧪 Testing
+
+Use `SipLine.Plugin.Testing` to unit test your plugin logic without running the full application.
+
+```csharp
+using SipLine.Plugin.Testing;
+
+[Fact]
+public async Task Should_Log_When_Call_Incoming()
+{
+    var mockContext = new MockPluginContext();
+    var plugin = new MyPlugin();
+    await plugin.InitializeAsync(mockContext);
+
+    // Simulate incoming call
+    ((MockSipService)mockContext.SipService).TriggerIncomingCall("123", "456");
+
+    Assert.Contains(mockContext.Logs, l => l.Contains("Incoming call from 123"));
+}
+```
+
+## 💾 Data Lifecycle
+
+*   **Storage:** Use `context.PluginDataPath` to store files.
+*   **Location:** `%AppData%\SipLine\plugins\{PluginId}\data\`.
+*   **Persistence:** Data is preserved during plugin updates.
+*   **Uninstall:** Data is NOT automatically deleted when the plugin is removed (to prevent accidental loss).
+
 ## 🤝 Contributing
 
 Pull requests are welcome! Please ensure your code adheres to the existing coding standards.
@@ -96,7 +156,3 @@ Pull requests are welcome! Please ensure your code adheres to the existing codin
 ## 📄 License
 
 This project is licensed under the MIT License.
-
-## Author
-
-Built by [FeelAutom](https://feelautom.fr) — contact@feelautom.fr
