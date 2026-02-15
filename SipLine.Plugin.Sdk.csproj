@@ -6,9 +6,13 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 
+    <!-- Version detection -->
+    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-version.txt')">$(MSBuildProjectDirectory)\sipline-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == ''">$(MSBuildProjectDirectory)\..\..\sipline-version.txt</SipLineVersionFile>
+
     <!-- NuGet Package Info -->
     <PackageId>SipLine.Plugin.Sdk</PackageId>
-    <Version>$([System.IO.File]::ReadAllText($([System.IO.Path]::Combine($(MSBuildProjectDirectory), (Exists('$(MSBuildProjectDirectory)/sipline-version.txt') ? 'sipline-version.txt' : '../../sipline-version.txt')))).Trim())</Version>
+    <Version>$([System.IO.File]::ReadAllText($(SipLineVersionFile)).Trim())</Version>
     <Authors>Franck</Authors>
     <Description>Official SDK for building SipLine Softphone plugins. Provides interfaces for call control, UI extensions, and system integration.</Description>
     <PackageTags>sipline;plugin;voip;sip;sdk;softphone</PackageTags>
