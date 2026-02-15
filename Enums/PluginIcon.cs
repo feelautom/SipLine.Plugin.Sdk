@@ -64,6 +64,46 @@ namespace SipLine.Plugin.Sdk.Enums
         /// <summary>
         /// Graph/Chart icon.
         /// </summary>
-        Chart
+        Chart,
+
+        /// <summary>
+        /// Star/Favorite icon.
+        /// </summary>
+        Star,
+
+        /// <summary>Home/Dashboard icon.</summary>
+        Home,
+        /// <summary>Calendar/Schedule icon.</summary>
+        Calendar,
+        /// <summary>Camera/Video icon.</summary>
+        Camera,
+        /// <summary>Wifi/Network icon.</summary>
+        Wifi,
+        /// <summary>Lock/Secure icon.</summary>
+        Lock,
+        /// <summary>User/Profile icon.</summary>
+        User,
+        /// <summary>Trash/Delete icon.</summary>
+        Trash,
+        /// <summary>Edit/Pencil icon.</summary>
+        Edit,
+        /// <summary>Info/About icon.</summary>
+        Info,
+        /// <summary>Help/Question icon.</summary>
+        Help,
+        /// <summary>Play media icon.</summary>
+        Play,
+        /// <summary>Pause media icon.</summary>
+        Pause,
+        /// <summary>Stop media icon.</summary>
+        Stop,
+        /// <summary>Warning/Alert icon.</summary>
+        Warning,
+        /// <summary>Error/Bug icon.</summary>
+        Error,
+        /// <summary>Check/Success icon.</summary>
+        Check,
+        /// <summary>CRM/Customer icon.</summary>
+        CRM
     }
 }

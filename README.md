@@ -115,11 +115,14 @@ var greeting = context.Localization.GetString("HelloMessage");
 
 ## 🖼️ Icons
 
-You can use standard icons from the `PluginIcon` enum instead of providing raw SVG paths:
+You can use standard icons from the `PluginIcon` enum instead of providing raw SVG paths. The host application will render them with the correct theme and style.
 
 ```csharp
 public PluginIcon? Icon => PluginIcon.Message;
 ```
+
+**Available Icons:**
+`Default`, `Phone`, `Message`, `Contact`, `Settings`, `Database`, `Headset`, `Microphone`, `History`, `Cloud`, `Security`, `Chart`, `Star`, `Home`, `Calendar`, `Camera`, `Wifi`, `Lock`, `User`, `Trash`, `Edit`, `Info`, `Help`, `Play`, `Pause`, `Stop`, `Warning`, `Error`, `Check`, `CRM`.
 
 ## 🧪 Testing
 
@@ -148,6 +151,22 @@ public async Task Should_Log_When_Call_Incoming()
 *   **Location:** `%AppData%\SipLine\plugins\{PluginId}\data\`.
 *   **Persistence:** Data is preserved during plugin updates.
 *   **Uninstall:** Data is NOT automatically deleted when the plugin is removed (to prevent accidental loss).
+
+## 🔑 Licensing
+
+SipLine supports three types of plugins, defined by the `LicenseType` property:
+
+1.  **Community (Default):** Free, open-source, or internal plugins. No license verification is performed.
+    ```csharp
+    public PluginLicenseType LicenseType => PluginLicenseType.Community;
+    ```
+
+2.  **Commercial:** Paid plugins protected by SoftLicence. SipLine will verify the `license.json` file in the plugin folder.
+    ```csharp
+    public PluginLicenseType LicenseType => PluginLicenseType.Commercial;
+    ```
+
+3.  **Integrated:** Reserved for official built-in plugins. Do not use this type for your own plugins.
 
 ## 🤝 Contributing
 

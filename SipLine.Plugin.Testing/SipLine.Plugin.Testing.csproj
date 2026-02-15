@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SipLine.Plugin.Sdk.csproj" />
+    <ProjectReference Include="..\SipLine.Plugin.Sdk\SipLine.Plugin.Sdk.csproj" />
   </ItemGroup>
 
 </Project>
