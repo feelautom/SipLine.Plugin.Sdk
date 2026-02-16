@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
@@ -9,7 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SipLine.Plugin.Sdk\SipLine.Plugin.Sdk.csproj" />
+    <!-- Monorepo location: SDK is a sibling -->
+    <ProjectReference Include="..\SipLine.Plugin.Sdk\SipLine.Plugin.Sdk.csproj" Condition="Exists('..\SipLine.Plugin.Sdk\SipLine.Plugin.Sdk.csproj')" />
+    <!-- Export location: SDK is the parent -->
+    <ProjectReference Include="..\SipLine.Plugin.Sdk.csproj" Condition="!Exists('..\SipLine.Plugin.Sdk\SipLine.Plugin.Sdk.csproj') AND Exists('..\SipLine.Plugin.Sdk.csproj')" />
   </ItemGroup>
 
 </Project>
