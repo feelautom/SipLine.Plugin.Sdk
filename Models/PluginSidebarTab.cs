@@ -22,15 +22,39 @@ namespace SipLine.Plugin.Sdk
         /// </summary>
         public string PluginId { get; set; } = "";
 
+        private string _title = "";
         /// <summary>
         /// Titre de l'onglet (affiché dans la sidebar étendue).
         /// </summary>
-        public string Title { get; set; } = "";
+        public string Title
+        {
+            get => _title;
+            set
+            {
+                if (_title != value)
+                {
+                    _title = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
+        private string _tooltip = "";
         /// <summary>
         /// Tooltip affiché au survol (sidebar réduite).
         /// </summary>
-        public string Tooltip { get; set; } = "";
+        public string Tooltip
+        {
+            get => _tooltip;
+            set
+            {
+                if (_tooltip != value)
+                {
+                    _tooltip = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Icône standard (prioritaire sur IconPathData).
@@ -70,10 +94,22 @@ namespace SipLine.Plugin.Sdk
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private int? _badge;
         /// <summary>
         /// Badge à afficher (ex: nombre de notifications). Null = pas de badge.
         /// </summary>
-        public int? Badge { get; set; }
+        public int? Badge
+        {
+            get => _badge;
+            set
+            {
+                if (_badge != value)
+                {
+                    _badge = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Fonction appelée pour créer le contenu de l'onglet.

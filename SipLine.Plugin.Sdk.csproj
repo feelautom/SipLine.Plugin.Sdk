@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
@@ -7,8 +7,10 @@
     <UseWPF>true</UseWPF>
 
     <!-- Version detection -->
-    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-version.txt')">$(MSBuildProjectDirectory)\sipline-version.txt</SipLineVersionFile>
-    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == ''">$(MSBuildProjectDirectory)\..\..\sipline-version.txt</SipLineVersionFile>
+    <!-- Version detection: try Export location (root) first, then Monorepo location -->
+    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\sipline-sdk-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == '' AND Exists('$(MSBuildProjectDirectory)\..\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\..\sipline-sdk-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == '' AND Exists('$(MSBuildProjectDirectory)\..\..\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\..\..\sipline-sdk-version.txt</SipLineVersionFile>
 
     <!-- NuGet Package Info -->
     <PackageId>SipLine.Plugin.Sdk</PackageId>
@@ -21,7 +23,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/feelautom/SipLine.Plugin.Sdk</RepositoryUrl>
 
-    <!-- Sécurité: masquer les chemins locaux dans les PDB (symbol packages) -->
+    <!-- SÃ©curitÃ©: masquer les chemins locaux dans les PDB (symbol packages) -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -48,3 +50,4 @@
   </ItemGroup>
 
 </Project>
+

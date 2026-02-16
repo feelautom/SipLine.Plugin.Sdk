@@ -40,6 +40,18 @@ namespace SipLine.Plugin.Testing
             Notifications.Add($"[Snackbar-{severity}] {message}");
         }
 
+        public Task<bool> ShowDialogAsync(string title, string message, string primaryButton = "OK", string secondaryButton = "Cancel")
+        {
+            Logs.Add($"[Dialog] {title}: {message} ({primaryButton}/{secondaryButton})");
+            return Task.FromResult(true); // Toujours true en mock
+        }
+
+        public Task<string?> ShowInputAsync(string title, string message, string defaultValue = "", string primaryButton = "OK", string secondaryButton = "Cancel")
+        {
+            Logs.Add($"[Input] {title}: {message} (Default: {defaultValue})");
+            return Task.FromResult<string?>(defaultValue); // Retourne la valeur par défaut en mock
+        }
+
         public void AddLog(string message, string level = "Info")
         {
             Logs.Add($"[{level}] {message}");
@@ -51,6 +63,7 @@ namespace SipLine.Plugin.Testing
         public void UnregisterSettingsTab(string tabId) { }
         public void RegisterSidebarTab(PluginSidebarTab tab) { }
         public void UnregisterSidebarTab(string tabId) { }
+        public void SelectSidebarTab(string tabId) { }
 
         public void RegisterSearchProvider(IPluginSearchProvider provider) => SearchProviders.Add(provider);
         public void UnregisterSearchProvider(string providerName) => SearchProviders.RemoveAll(p => p.ProviderName == providerName);
@@ -82,6 +95,21 @@ namespace SipLine.Plugin.Testing
         public void RegisterSettingsFields(IEnumerable<PluginSettingsField> fields) { }
 
         public bool AreRequiredSettingsFilled => true;
+
+        public bool IsDarkTheme { get; set; } = true;
+
+        public string AppVersion { get; set; } = "1.0.0-mock";
+
+        public Task RunOnUIThread(Action action)
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        public Task<T> RunOnUIThread<T>(Func<T> function)
+        {
+            return Task.FromResult(function());
+        }
 
         public void TriggerLanguageChanged(string lang) => OnLanguageChanged?.Invoke(lang);
         public void TriggerDevicesChanged() => OnDevicesChanged?.Invoke();
