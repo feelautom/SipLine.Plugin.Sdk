@@ -7,8 +7,7 @@
     <UseWPF>true</UseWPF>
 
     <!-- Version detection -->
-    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-version.txt')">$(MSBuildProjectDirectory)\sipline-version.txt</SipLineVersionFile>
-    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == ''">$(MSBuildProjectDirectory)\..\..\sipline-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\..\..\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\..\..\sipline-sdk-version.txt</SipLineVersionFile>
 
     <!-- NuGet Package Info -->
     <PackageId>SipLine.Plugin.Sdk</PackageId>

@@ -17,6 +17,9 @@ For more information, downloads, and documentation about the softphone itself, v
 ## 🚀 Features
 
 *   **UI Integration**: Add tabs to the sidebar, buttons to the toolbar, or create full-page views using WPF.
+*   **Interactive Dialogs**: Display confirmation dialogs and prompt for user input.
+*   **Application Context**: Access current application version, theme mode (dark/light), and UI thread execution helpers.
+*   **UI Navigation**: Programmatically select sidebar tabs.
 *   **SIP Events**: Intercept incoming calls, detect outgoing calls, and monitor call state changes.
 *   **Settings Management**: Easily store and retrieve persistent configuration for your plugin.
 *   **Notifications**: Trigger native Windows toasts or in-app snackbars.
@@ -61,20 +64,24 @@ public class MyAwesomePlugin : ISipLinePlugin
         _context = context;
         _context.Logger.LogInformation("Hello from MyAwesomePlugin!");
 
-        // Add a button to the main toolbar
-        _context.RegisterToolbarButton(new PluginToolbarButton
+        // Add a sidebar tab
+        _context.RegisterSidebarTab(new PluginSidebarTab
         {
-            Id = "my-btn",
-            Icon = PluginIcon.Star, // Or use IconPathData for custom SVG
-            Command = new RelayCommand(() => _context.ShowSnackbar("Button clicked!")),
-            Tooltip = "Click Me"
+            Id = "my-tab", // Unique ID for your tab
+            Title = "My Plugin",
+            Tooltip = "Open My Plugin View",
+            Icon = PluginIcon.Star, // Use standard icon or IconPathData for custom SVG
+            Order = 200, // Position in the sidebar
+            ContentFactory = () => new MyPluginView() // Your WPF UserControl for the tab content
         });
-
+        
         return Task.CompletedTask;
     }
 
     public Task ShutdownAsync()
     {
+        // Unregister your tab when the plugin shuts down
+        _context?.UnregisterSidebarTab("my-tab");
         return Task.CompletedTask;
     }
 }
@@ -84,12 +91,20 @@ public class MyAwesomePlugin : ISipLinePlugin
 
 Your plugin interacts with SipLine through the `IPluginContext`.
 
-| Service | Usage |
-|---------|-------|
-| `IPluginContext.SipService` | Call control (Answer, Hangup, Transfer) |
-| `IPluginContext.CallHistory` | Access past logs |
-| `IPluginContext.RegisterSidebarTab` | Add custom XAML views to the main menu |
-| `IPluginContext.PluginDataPath` | Path to store your local data/files |
+| Feature | `IPluginContext` Member | Description |
+|---------|-------------------------|-------------|
+| **SIP Core** | `SipService` | Control calls (Make, Answer, Hangup, Transfer, DTMF) |
+| | `CallHistory` | Access call history records |
+| | `Contacts` | Access SipLine contact list |
+| **UI Interaction** | `ShowNotification`, `ShowSnackbar` | Display messages to the user |
+| | `ShowDialogAsync`, `ShowInputAsync` | Show modal dialogs for confirmation or input |
+| | `SelectSidebarTab` | Programmatically select a sidebar tab |
+| **App Context** | `IsDarkTheme`, `AppVersion` | Get application theme and version |
+| | `RunOnUIThread` | Execute code safely on the UI thread |
+| **Plugin Specific** | `Logger`, `PluginDataPath` | Logging and persistent storage for plugin data |
+| | `GetSetting`, `SetSetting` | Store and retrieve plugin settings |
+| | `RegisterSidebarTab`, `RegisterSettingsTab` | Extend SipLine UI with custom views |
+| | `RegisterContextMenuOption` | Add options to context menus (Contacts, History, Active Call) |
 
 ## 🎨 Theming & Styles
 
@@ -106,11 +121,24 @@ To ensure your plugin looks native to SipLine, use the standardized theme resour
 
 ## 🌍 Localization (I18N)
 
-SipLine automatically detects `Resources.resx` files (Properties.Resources) in your plugin assembly.
-Use the context to access localized strings:
+SipLine automatically detects `Resources.resx` files (e.g., `MyPlugin.Resources.Strings.resx`) in your plugin assembly.
+Use `context.Localization` to access localized strings:
 
 ```csharp
 var greeting = context.Localization.GetString("HelloMessage");
+var formattedGreeting = context.Localization.GetString("WelcomeMessage", "User123");
+```
+
+For dynamic UI updates in XAML, implement an indexer in your ViewModel:
+```csharp
+public string this[string key] => _context.Localization.GetString(key);
+
+public MyViewModel(IPluginContext context)
+{
+    _context = context;
+    // Notify WPF to refresh all keys when the language changes
+    _context.OnLanguageChanged += (lang) => OnPropertyChanged("Item[]");
+}
 ```
 
 ## 🖼️ Icons

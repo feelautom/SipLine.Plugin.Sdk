@@ -40,6 +40,18 @@ namespace SipLine.Plugin.Sdk
         string PluginDataPath { get; }
 
         /// <summary>
+        /// Shows a confirmation dialog with custom title, message and button labels.
+        /// </summary>
+        /// <returns>True if the user clicked the primary button, false otherwise.</returns>
+        Task<bool> ShowDialogAsync(string title, string message, string primaryButton = "OK", string secondaryButton = "Cancel");
+
+        /// <summary>
+        /// Shows an input dialog to ask for a text value.
+        /// </summary>
+        /// <returns>The text entered by the user, or null if canceled.</returns>
+        Task<string?> ShowInputAsync(string title, string message, string defaultValue = "", string primaryButton = "OK", string secondaryButton = "Cancel");
+
+        /// <summary>
         /// Shows a native Windows Toast notification.
         /// </summary>
         void ShowNotification(string title, string message, NotificationSeverity severity = NotificationSeverity.Info);
@@ -83,6 +95,11 @@ namespace SipLine.Plugin.Sdk
         /// Removes a tab from the main sidebar.
         /// </summary>
         void UnregisterSidebarTab(string tabId);
+
+        /// <summary>
+        /// Selects a specific sidebar tab by its ID.
+        /// </summary>
+        void SelectSidebarTab(string tabId);
 
         /// <summary>
         /// Registers a search provider to extend global search.
@@ -163,6 +180,27 @@ namespace SipLine.Plugin.Sdk
         /// Indicates if all required settings for the plugin are filled.
         /// </summary>
         bool AreRequiredSettingsFilled { get; }
+
+        /// <summary>
+        /// Indicates if the application is currently using a dark theme.
+        /// </summary>
+        bool IsDarkTheme { get; }
+
+        /// <summary>
+        /// Current version of the SipLine application.
+        /// </summary>
+        string AppVersion { get; }
+
+        /// <summary>
+        /// Executes an action on the application's UI thread.
+        /// Useful for updating UI from background tasks.
+        /// </summary>
+        Task RunOnUIThread(Action action);
+
+        /// <summary>
+        /// Executes a function on the application's UI thread and returns its result.
+        /// </summary>
+        Task<T> RunOnUIThread<T>(Func<T> function);
     }
 
     /// <summary>
