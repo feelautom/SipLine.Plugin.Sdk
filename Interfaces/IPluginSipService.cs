@@ -65,6 +65,26 @@ namespace SipLine.Plugin.Sdk
         /// <param name="digit">Digit to send (0-9, *, #)</param>
         void SendDtmf(char digit);
 
+        /// <summary>
+        /// Terminates a specific call.
+        /// </summary>
+        /// <param name="callId">ID of the call to hang up</param>
+        Task HangupCallAsync(string callId);
+
+        /// <summary>
+        /// Places a call on hold or resumes it.
+        /// </summary>
+        /// <param name="callId">ID of the call</param>
+        /// <param name="hold">True to hold, false to resume</param>
+        Task SetHoldAsync(string callId, bool hold);
+
+        /// <summary>
+        /// Transfers a call to another destination (Blind Transfer).
+        /// </summary>
+        /// <param name="callId">ID of the call to transfer</param>
+        /// <param name="destination">Target number or extension</param>
+        Task TransferCallAsync(string callId, string destination);
+
         #endregion
     }
 

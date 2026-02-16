@@ -6,9 +6,13 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 
+    <!-- Version detection -->
+    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-version.txt')">$(MSBuildProjectDirectory)\sipline-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == ''">$(MSBuildProjectDirectory)\..\..\sipline-version.txt</SipLineVersionFile>
+
     <!-- NuGet Package Info -->
     <PackageId>SipLine.Plugin.Sdk</PackageId>
-    <Version>$([System.IO.File]::ReadAllText($(MSBuildProjectDirectory)/../../sipline-version.txt).Trim())</Version>
+    <Version>$([System.IO.File]::ReadAllText($(SipLineVersionFile)).Trim())</Version>
     <Authors>Franck</Authors>
     <Description>Official SDK for building SipLine Softphone plugins. Provides interfaces for call control, UI extensions, and system integration.</Description>
     <PackageTags>sipline;plugin;voip;sip;sdk;softphone</PackageTags>
@@ -34,6 +38,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageReference Include="SoftLicence.SDK" Version="1.0.0" />
     <PackageReference Include="System.Management" Version="10.0.2" />
+  </ItemGroup>
+
+  <!-- Exclude Testing project if it exists as a subfolder (Export scenario) -->
+  <ItemGroup>
+    <Compile Remove="SipLine.Plugin.Testing\**" />
+    <EmbeddedResource Remove="SipLine.Plugin.Testing\**" />
+    <None Remove="SipLine.Plugin.Testing\**" />
   </ItemGroup>
 
 </Project>

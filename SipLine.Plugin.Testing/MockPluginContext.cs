@@ -2,10 +2,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SipLine.Plugin.Sdk;
 using SipLine.Plugin.Sdk.Enums;
+using SipLine.Plugin.Sdk.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace SipLine.Plugin.Testing
 {
@@ -13,6 +15,8 @@ namespace SipLine.Plugin.Testing
     {
         public IPluginSipService SipService { get; set; } = new MockSipService();
         public IPluginCallHistory CallHistory { get; set; } = new MockCallHistory();
+        public IPluginContactService Contacts { get; set; } = new MockContactService();
+        public IPluginAudioService Audio { get; set; } = new MockAudioService();
         public ILogger Logger { get; set; } = NullLogger.Instance;
         public string PluginDataPath { get; set; } = Path.Combine(Path.GetTempPath(), "SipLineTest");
         public IPluginLocalization Localization { get; set; } = new MockLocalization();
@@ -20,6 +24,8 @@ namespace SipLine.Plugin.Testing
         public List<string> Notifications { get; } = new();
         public List<string> Logs { get; } = new();
         public Dictionary<string, object> Settings { get; } = new();
+        public List<IPluginSearchProvider> SearchProviders { get; } = new();
+        public List<(MenuArea Area, string Label)> ContextMenuOptions { get; } = new();
 
         public event Action<string>? OnLanguageChanged;
         public event Action? OnDevicesChanged;
@@ -45,6 +51,13 @@ namespace SipLine.Plugin.Testing
         public void UnregisterSettingsTab(string tabId) { }
         public void RegisterSidebarTab(PluginSidebarTab tab) { }
         public void UnregisterSidebarTab(string tabId) { }
+
+        public void RegisterSearchProvider(IPluginSearchProvider provider) => SearchProviders.Add(provider);
+        public void UnregisterSearchProvider(string providerName) => SearchProviders.RemoveAll(p => p.ProviderName == providerName);
+        
+        public void RegisterContextMenuOption(MenuArea area, string label, Action<object> callback) 
+            => ContextMenuOptions.Add((area, label));
+
         public void OpenPluginView(PluginViewRequest request) { }
         public void ClosePluginView() { }
 
@@ -101,6 +114,10 @@ namespace SipLine.Plugin.Testing
             OnDtmfReceived?.Invoke(new DtmfInfo { Digit = digit, DurationMs = 100 });
         }
 
+        public Task HangupCallAsync(string callId) => Task.CompletedTask;
+        public Task SetHoldAsync(string callId, bool hold) => Task.CompletedTask;
+        public Task TransferCallAsync(string callId, string destination) => Task.CompletedTask;
+
         public void TriggerIncomingCall(string from, string to)
         {
             var info = new CallInfo { CallerNumber = from, CalleeNumber = to, Direction = CallDirection.Incoming };
@@ -155,6 +172,25 @@ namespace SipLine.Plugin.Testing
         {
             OnCallAdded = null;
         }
+    }
+
+    public class MockContactService : IPluginContactService
+    {
+        public List<PluginContact> LocalContacts { get; } = new();
+        public Task<IEnumerable<PluginContact>> GetContactsAsync() => Task.FromResult((IEnumerable<PluginContact>)LocalContacts);
+        public Task AddContactAsync(PluginContact contact) { LocalContacts.Add(contact); return Task.CompletedTask; }
+        public Task UpdateContactAsync(PluginContact contact) { return Task.CompletedTask; }
+        public Task DeleteContactAsync(string contactId) { LocalContacts.RemoveAll(c => c.Id == contactId); return Task.CompletedTask; }
+    }
+
+    public class MockAudioService : IPluginAudioService
+    {
+        public int Volume { get; set; } = 100;
+        public bool IsMuted { get; private set; }
+        public void SetMute(bool mute) { IsMuted = mute; OnMuteChanged?.Invoke(mute); }
+        public event Action<int>? OnVolumeChanged;
+        public event Action<bool>? OnMuteChanged;
+        public void TriggerVolumeChanged(int vol) => OnVolumeChanged?.Invoke(vol);
     }
 
     public class MockLocalization : IPluginLocalization

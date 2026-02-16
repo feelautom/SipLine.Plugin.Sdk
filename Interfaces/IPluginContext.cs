@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SipLine.Plugin.Sdk.Models;
 
 namespace SipLine.Plugin.Sdk
 {
@@ -16,6 +17,16 @@ namespace SipLine.Plugin.Sdk
         /// Access to call history records.
         /// </summary>
         IPluginCallHistory CallHistory { get; }
+
+        /// <summary>
+        /// Service to manage contacts within SipLine.
+        /// </summary>
+        IPluginContactService Contacts { get; }
+
+        /// <summary>
+        /// Service to monitor and control audio hardware.
+        /// </summary>
+        IPluginAudioService Audio { get; }
 
         /// <summary>
         /// Logger for the plugin (prefixed with the plugin name).
@@ -72,6 +83,24 @@ namespace SipLine.Plugin.Sdk
         /// Removes a tab from the main sidebar.
         /// </summary>
         void UnregisterSidebarTab(string tabId);
+
+        /// <summary>
+        /// Registers a search provider to extend global search.
+        /// </summary>
+        void RegisterSearchProvider(IPluginSearchProvider provider);
+
+        /// <summary>
+        /// Unregisters a search provider.
+        /// </summary>
+        void UnregisterSearchProvider(string providerName);
+
+        /// <summary>
+        /// Registers a custom option in a context menu.
+        /// </summary>
+        /// <param name="area">Target menu area</param>
+        /// <param name="label">Label displayed in the menu</param>
+        /// <param name="callback">Action executed when the option is clicked. Object is context data (CallInfo, Contact, etc.)</param>
+        void RegisterContextMenuOption(MenuArea area, string label, Action<object> callback);
 
         /// <summary>
         /// Requests to display a full-page view for the plugin.
