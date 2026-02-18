@@ -21,6 +21,7 @@ For more information, downloads, and documentation about the softphone itself, v
 *   **Application Context**: Access current application version, theme mode (dark/light), and UI thread execution helpers.
 *   **UI Navigation**: Programmatically select sidebar tabs.
 *   **SIP Events**: Intercept incoming calls, detect outgoing calls, and monitor call state changes.
+*   **Do Not Disturb (DND)**: Read and control the DND state programmatically. React to DND changes via events.
 *   **Settings Management**: Easily store and retrieve persistent configuration for your plugin.
 *   **Notifications**: Trigger native Windows toasts or in-app snackbars.
 *   **Audio**: Access audio device events (mute, volume).
@@ -94,6 +95,8 @@ Your plugin interacts with SipLine through the `IPluginContext`.
 | Feature | `IPluginContext` Member | Description |
 |---------|-------------------------|-------------|
 | **SIP Core** | `SipService` | Control calls (Make, Answer, Hangup, Transfer, DTMF) |
+| | `SipService.IsDndEnabled` | Read or set the Do Not Disturb state |
+| | `SipService.OnDndChanged` | Subscribe to DND state change events |
 | | `CallHistory` | Access call history records |
 | | `Contacts` | Access SipLine contact list |
 | **UI Interaction** | `ShowNotification`, `ShowSnackbar` | Display messages to the user |
