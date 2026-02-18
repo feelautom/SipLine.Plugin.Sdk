@@ -125,11 +125,18 @@ namespace SipLine.Plugin.Testing
         public event Action<CallInfo>? OnCallHeld;
         public event Action<CallInfo>? OnCallResumed;
         public event Action<DtmfInfo>? OnDtmfReceived;
+        public event Action<bool>? OnDndChanged;
 
         public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.Registered;
         public bool IsInCall { get; set; }
         public CallInfo? CurrentCall { get; set; }
         public string? SipUser { get; set; } = "1000";
+        public bool IsDndEnabled
+        {
+            get => _isDndEnabled;
+            set { _isDndEnabled = value; OnDndChanged?.Invoke(value); }
+        }
+        private bool _isDndEnabled;
 
         public Task<bool> MakeCallAsync(string destination)
         {

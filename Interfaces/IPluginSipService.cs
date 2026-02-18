@@ -32,6 +32,9 @@ namespace SipLine.Plugin.Sdk
         /// <summary>SIP registration status changed</summary>
         event Action<RegistrationStatus>? OnRegistrationChanged;
 
+        /// <summary>Do Not Disturb state changed</summary>
+        event Action<bool>? OnDndChanged;
+
         #endregion
 
         #region Current State
@@ -47,6 +50,9 @@ namespace SipLine.Plugin.Sdk
 
         /// <summary>User's SIP extension/number</summary>
         string? SipUser { get; }
+
+        /// <summary>Do Not Disturb state. When true, incoming calls are rejected.</summary>
+        bool IsDndEnabled { get; set; }
 
         #endregion
 
