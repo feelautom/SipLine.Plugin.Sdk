@@ -74,8 +74,12 @@ jobs:
       - name: Push to GitHub Packages
         shell: pwsh
         env:
-          GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.GH_TOKEN_DIRECT }}
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          if ([string]::IsNullOrWhiteSpace($env:GITHUB_PACKAGES_TOKEN)) {
+            throw "The GH_TOKEN_DIRECT secret is required for GitHub Packages."
+          }
           dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:GITHUB_PACKAGES_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
           dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:GITHUB_PACKAGES_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
@@ -84,6 +88,7 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
             throw "The NUGET_API_KEY secret is required for a public release."
           }
