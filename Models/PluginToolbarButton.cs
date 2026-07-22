@@ -4,53 +4,53 @@ using SipLine.Plugin.Sdk.Enums;
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Définit un bouton de barre d'outils fourni par un plugin.
+    /// Defines a toolbar button provided by a plugin.
     /// </summary>
     public sealed class PluginToolbarButton
     {
         /// <summary>
-        /// Identifiant unique du bouton.
+        /// Gets or sets the unique button identifier.
         /// </summary>
         public string Id { get; set; } = "";
 
         /// <summary>
-        /// Tooltip affiché au survol.
+        /// Gets or sets the tooltip shown on hover.
         /// </summary>
         public string Tooltip { get; set; } = "";
 
         /// <summary>
-        /// Icône standard (prioritaire sur IconPathData).
+        /// Gets or sets the standard icon, which takes precedence over IconPathData.
         /// </summary>
         public PluginIcon? Icon { get; set; }
 
         /// <summary>
-        /// Icône au format Geometry Path Data (SVG path).
+        /// Gets or sets the icon as geometry path data (SVG path).
         /// </summary>
         public string IconPathData { get; set; } = "";
 
         /// <summary>
-        /// Commande exécutée au clic.
+        /// Gets or sets the command executed when the button is clicked.
         /// </summary>
         public ICommand? Command { get; set; }
 
         /// <summary>
-        /// Paramètre passé à la commande.
+        /// Gets or sets the command parameter.
         /// </summary>
         public object? CommandParameter { get; set; }
 
         /// <summary>
-        /// Ordre d'affichage (plus petit = plus à gauche).
-        /// Les boutons de l'app sont à 0-100, les plugins commencent à 200.
+        /// Gets or sets the display order; lower values appear farther left.
+        /// Application buttons use 0-100 and plugin buttons start at 200.
         /// </summary>
         public int Order { get; set; } = 200;
 
         /// <summary>
-        /// Le bouton est-il visible ?
+        /// Gets or sets whether the button is visible.
         /// </summary>
         public bool IsVisible { get; set; } = true;
 
         /// <summary>
-        /// Le bouton est-il activé ?
+        /// Gets or sets whether the button is enabled.
         /// </summary>
         public bool IsEnabled { get; set; } = true;
     }

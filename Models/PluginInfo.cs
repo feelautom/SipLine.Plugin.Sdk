@@ -5,33 +5,38 @@ using SipLine.Plugin.Sdk.Licensing;
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Statut de la licence d'un plugin.
+    /// Status of a plugin license.
     /// </summary>
     public enum PluginLicenseStatus
     {
         /// <summary>
-        /// Licence non requise (plugin gratuit).
+        /// No license is required for this free plugin.
         /// </summary>
         NotRequired,
 
         /// <summary>
-        /// Licence valide.
+        /// The license is valid.
         /// </summary>
         Valid,
 
         /// <summary>
-        /// Fichier de licence manquant.
+        /// The license file is missing.
         /// </summary>
         Missing,
 
         /// <summary>
-        /// Licence invalide ou expirée.
+        /// The license is invalid or expired.
         /// </summary>
-        Invalid
+        Invalid,
+
+        /// <summary>
+        /// The application plan does not allow this plugin (Pro or higher is required).
+        /// </summary>
+        PlanRequired
     }
 
     /// <summary>
-    /// Informations sur un plugin chargé.
+    /// Information about a loaded plugin.
     /// </summary>
     public sealed class PluginInfo : INotifyPropertyChanged
     {
@@ -42,17 +47,17 @@ namespace SipLine.Plugin.Sdk
         public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
-        /// Instance du plugin.
+        /// Gets or sets the plugin instance.
         /// </summary>
         public ISipLinePlugin Plugin { get; set; } = null!;
 
         /// <summary>
-        /// Chemin du fichier DLL.
+        /// Gets or sets the plugin assembly path.
         /// </summary>
         public string DllPath { get; set; } = "";
 
         /// <summary>
-        /// Le plugin est activé.
+        /// Gets or sets whether the plugin is enabled.
         /// </summary>
         public bool IsEnabled
         {
@@ -68,7 +73,7 @@ namespace SipLine.Plugin.Sdk
         }
 
         /// <summary>
-        /// Le plugin a été initialisé avec succès.
+        /// Gets or sets whether the plugin initialized successfully.
         /// </summary>
         public bool IsInitialized
         {
@@ -84,7 +89,7 @@ namespace SipLine.Plugin.Sdk
         }
 
         /// <summary>
-        /// Erreur lors du chargement (si échec).
+        /// Gets or sets the load error, when loading failed.
         /// </summary>
         public string? LoadError
         {
@@ -100,7 +105,7 @@ namespace SipLine.Plugin.Sdk
         }
 
         /// <summary>
-        /// Date de chargement du plugin.
+        /// Gets or sets when the plugin was loaded.
         /// </summary>
         public DateTime LoadedAt { get; set; } = DateTime.Now;
 
@@ -113,53 +118,64 @@ namespace SipLine.Plugin.Sdk
         public bool HasSettingsUI => Plugin?.HasSettingsUI ?? false;
 
         /// <summary>
-        /// Indique si le plugin est installé par l'utilisateur (AppData) ou bundled (local).
+        /// Gets or sets whether the plugin is user-installed in AppData rather than bundled locally.
         /// </summary>
         public bool IsUserInstalled => DllPath.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         /// <summary>
-        /// Label de la source du plugin.
+        /// Gets or sets the display label for the plugin source.
         /// </summary>
         public string SourceLabel => IsUserInstalled ? "Installé" : "Intégré";
 
         /// <summary>
-        /// Type de licence du plugin.
+        /// Gets or sets the plugin license type.
         /// </summary>
         public PluginLicenseType LicenseType => Plugin?.LicenseType ?? PluginLicenseType.Community;
 
         /// <summary>
-        /// Statut de la licence.
+        /// Gets or sets the license status.
         /// </summary>
         public PluginLicenseStatus LicenseStatus { get; set; } = PluginLicenseStatus.NotRequired;
 
         /// <summary>
-        /// Message détaillé sur la licence (erreur ou info).
+        /// Gets or sets detailed license information or an error message.
         /// </summary>
         public string? LicenseMessage { get; set; }
 
         /// <summary>
-        /// Indique si le plugin peut être utilisé (licence ok ou non requise).
+        /// Gets or sets the features allowed by the plugin license.
+        /// The "*" value means every feature.
+        /// </summary>
+        public IReadOnlyList<string> LicensedFeatures { get; set; } = new List<string> { "*" };
+
+        /// <summary>
+        /// Gets whether the plugin can be used because its license is valid or not required.
         /// </summary>
         public bool IsLicenseValid => LicenseStatus == PluginLicenseStatus.NotRequired || LicenseStatus == PluginLicenseStatus.Valid;
 
         /// <summary>
-        /// Indique si le plugin est commercial (nécessite une licence).
+        /// Gets whether the plugin is commercial and requires a license.
         /// </summary>
         public bool IsCommercial => LicenseType == PluginLicenseType.Commercial;
 
         /// <summary>
-        /// Champs de paramètres déclarés par le plugin.
+        /// Gets whether the plugin is blocked because the application plan is insufficient.
+        /// </summary>
+        public bool IsPlanRequired => LicenseStatus == PluginLicenseStatus.PlanRequired;
+
+        /// <summary>
+        /// Gets or sets the settings fields declared by the plugin.
         /// </summary>
         public List<PluginSettingsField> SettingsFields { get; set; } = new();
 
         /// <summary>
-        /// Indique si le plugin a des champs de paramètres.
+        /// Gets whether the plugin declares settings fields.
         /// </summary>
         public bool HasSettingsFields => SettingsFields.Count > 0;
 
         private bool _areSettingsExpanded;
         /// <summary>
-        /// Indique si les settings du plugin sont expandus.
+        /// Gets or sets whether the plugin settings are expanded.
         /// </summary>
         public bool AreSettingsExpanded
         {
@@ -176,7 +192,7 @@ namespace SipLine.Plugin.Sdk
 
         private bool _areRequiredSettingsFilled = true;
         /// <summary>
-        /// Indique si tous les paramètres requis sont remplis.
+        /// Gets or sets whether all required settings are filled in.
         /// </summary>
         public bool AreRequiredSettingsFilled
         {
@@ -193,7 +209,7 @@ namespace SipLine.Plugin.Sdk
         }
 
         /// <summary>
-        /// Indique si le plugin doit apparaître dans le menu (licence ok + settings remplis).
+        /// Gets whether the plugin should appear in the menu based on licensing and required settings.
         /// </summary>
         public bool ShouldShowInMenu => IsEnabled && IsLicenseValid && AreRequiredSettingsFilled;
 

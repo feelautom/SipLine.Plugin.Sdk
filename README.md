@@ -9,7 +9,7 @@ The official SDK for developing plugins for **SipLine**, the professional SIP so
 ---
 
 ### 🌐 Official Website
-For more information, downloads, and documentation about the softphone itself, visit:  
+For more information, downloads, and documentation about the softphone itself, visit:
 **[https://sipline.feelautom.fr](https://sipline.feelautom.fr)**
 
 ---
@@ -21,10 +21,9 @@ For more information, downloads, and documentation about the softphone itself, v
 *   **Application Context**: Access current application version, theme mode (dark/light), and UI thread execution helpers.
 *   **UI Navigation**: Programmatically select sidebar tabs.
 *   **SIP Events**: Intercept incoming calls, detect outgoing calls, and monitor call state changes.
-*   **Do Not Disturb (DND)**: Read and control the DND state programmatically. React to DND changes via events.
 *   **Settings Management**: Easily store and retrieve persistent configuration for your plugin.
 *   **Notifications**: Trigger native Windows toasts or in-app snackbars.
-*   **Audio**: Access audio device events (mute, volume).
+*   **Audio**: Access audio device events and stream or inject real-time call audio when licensed.
 
 ## 📦 Installation
 
@@ -32,7 +31,7 @@ To start building a plugin, create a new **.NET 9.0 Windows Class Library** and 
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="SipLine.Plugin.Sdk" Version="1.0.0" />
+    <PackageReference Include="SipLine.Plugin.Sdk" Version="1.3.0" Private="false" ExcludeAssets="runtime" />
 </ItemGroup>
 ```
 
@@ -54,9 +53,9 @@ public class MyAwesomePlugin : ISipLinePlugin
     public string Description => "Adds super powers to SipLine.";
     public Version Version => new(1, 0, 0);
     public string Author => "Me";
-    
+
     // Use standard icon
-    public PluginIcon? Icon => PluginIcon.Rocket; 
+    public PluginIcon? Icon => PluginIcon.Rocket;
 
     private IPluginContext _context;
 
@@ -75,7 +74,7 @@ public class MyAwesomePlugin : ISipLinePlugin
             Order = 200, // Position in the sidebar
             ContentFactory = () => new MyPluginView() // Your WPF UserControl for the tab content
         });
-        
+
         return Task.CompletedTask;
     }
 
@@ -95,8 +94,6 @@ Your plugin interacts with SipLine through the `IPluginContext`.
 | Feature | `IPluginContext` Member | Description |
 |---------|-------------------------|-------------|
 | **SIP Core** | `SipService` | Control calls (Make, Answer, Hangup, Transfer, DTMF) |
-| | `SipService.IsDndEnabled` | Read or set the Do Not Disturb state |
-| | `SipService.OnDndChanged` | Subscribe to DND state change events |
 | | `CallHistory` | Access call history records |
 | | `Contacts` | Access SipLine contact list |
 | **UI Interaction** | `ShowNotification`, `ShowSnackbar` | Display messages to the user |
@@ -179,7 +176,7 @@ public async Task Should_Log_When_Call_Incoming()
 ## 💾 Data Lifecycle
 
 *   **Storage:** Use `context.PluginDataPath` to store files.
-*   **Location:** `%AppData%\SipLine\plugins\{PluginId}\data\`.
+*   **Location:** `%AppData%\FeelAutomCorp\SipLine\plugins\{PluginId}\data\`.
 *   **Persistence:** Data is preserved during plugin updates.
 *   **Uninstall:** Data is NOT automatically deleted when the plugin is removed (to prevent accidental loss).
 
@@ -192,12 +189,35 @@ SipLine supports three types of plugins, defined by the `LicenseType` property:
     public PluginLicenseType LicenseType => PluginLicenseType.Community;
     ```
 
-2.  **Commercial:** Paid plugins protected by SoftLicence. SipLine will verify the `license.json` file in the plugin folder.
+2.  **Commercial:** Paid plugins protected by SoftLicence. SipLine validates `license.lic` (or `license.json`) in the plugin folder.
     ```csharp
     public PluginLicenseType LicenseType => PluginLicenseType.Commercial;
     ```
 
 3.  **Integrated:** Reserved for official built-in plugins. Do not use this type for your own plugins.
+
+For commercial plugins, SipLine also supports:
+- `pluginId` check against `ISipLinePlugin.Id`
+- `minAppVersion` / `pluginVersion` checks
+- `allowedFeatures` feature gating (`*`, bool, CSV string, array, or object flags)
+- An absent `allowedFeatures` keeps the historical `*` policy; an explicitly empty/false allow-list grants no feature and is never promoted to `*`.
+- Native enforcement in both `Debug` and `Release` (`SipLine.Native.dll`)
+
+Security contract:
+- `license.lic` and `license.json` may contain the official Base64 license file or the directly signed SoftLicence JSON.
+- SipLine never treats the presence of a `Signature` property as proof of authenticity. RSA verification must succeed before `pluginId`, hardware binding, versions, or features are trusted.
+- Invalid JSON, unknown formats, invalid signatures, missing native validation, and unverifiable signed constraints fail closed.
+- The historical two-parameter `LicenseValidator.Validate` API remains available, but rejects a license carrying version constraints because that API has no current versions to compare. Use the four-parameter overload for constrained licenses.
+- Do not rewrite, normalize, or reorder signed JSON before validation.
+
+Official feature keys:
+- `*`
+- `ui.sidebar_tab`
+- `ui.settings_tab`
+- `ui.toolbar_button`
+- `ui.open_view`
+- `ui.context_menu`
+- `search.provider`
 
 ## 🤝 Contributing
 

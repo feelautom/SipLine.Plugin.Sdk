@@ -40,6 +40,17 @@ namespace SipLine.Plugin.Sdk
         string PluginDataPath { get; }
 
         /// <summary>
+        /// Gets the features allowed by the plugin license.
+        /// The "*" value allows every feature.
+        /// </summary>
+        IReadOnlyCollection<string> LicensedFeatures { get; }
+
+        /// <summary>
+        /// Determines whether the plugin license allows a feature.
+        /// </summary>
+        bool HasLicensedFeature(string featureKey);
+
+        /// <summary>
         /// Shows a confirmation dialog with custom title, message and button labels.
         /// </summary>
         /// <returns>True if the user clicked the primary button, false otherwise.</returns>

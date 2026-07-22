@@ -1,42 +1,42 @@
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Requête pour ouvrir une vue de plugin.
+    /// Request to open a plugin view.
     /// </summary>
     public sealed class PluginViewRequest
     {
         /// <summary>
-        /// Identifiant unique de la vue.
+        /// Gets or sets the unique view identifier.
         /// </summary>
         public string ViewId { get; set; } = "";
 
         /// <summary>
-        /// Titre affiché dans l'en-tête de la vue.
+        /// Gets or sets the title shown in the view header.
         /// </summary>
         public string Title { get; set; } = "";
 
         /// <summary>
-        /// Sous-titre ou description (optionnel).
+        /// Gets or sets the optional subtitle or description.
         /// </summary>
         public string? Subtitle { get; set; }
 
         /// <summary>
-        /// Icône au format Geometry Path Data (SVG path).
+        /// Gets or sets the icon as geometry path data (SVG path).
         /// </summary>
         public string? IconPathData { get; set; }
 
         /// <summary>
-        /// Le contenu de la vue (UserControl WPF).
+        /// Gets or sets the WPF UserControl used as view content.
         /// </summary>
         public object Content { get; set; } = null!;
 
         /// <summary>
-        /// Afficher un bouton de retour pour fermer la vue.
+        /// Gets or sets whether to show a back button that closes the view.
         /// </summary>
         public bool ShowBackButton { get; set; } = true;
 
         /// <summary>
-        /// Callback appelé quand la vue est fermée.
+        /// Gets or sets the callback invoked when the view closes.
         /// </summary>
         public Action? OnClosed { get; set; }
     }

@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using SipLine.Plugin.Sdk;
 using SipLine.Plugin.Sdk.Enums;
 using SipLine.Plugin.Sdk.Models;
+using SipLine.Plugin.Sdk.Licensing;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SipLine.Plugin.Testing
@@ -17,15 +18,21 @@ namespace SipLine.Plugin.Testing
         public IPluginCallHistory CallHistory { get; set; } = new MockCallHistory();
         public IPluginContactService Contacts { get; set; } = new MockContactService();
         public IPluginAudioService Audio { get; set; } = new MockAudioService();
-        public ILogger Logger { get; set; } = NullLogger.Instance;
+        public ILogger Logger { get; set; }
         public string PluginDataPath { get; set; } = Path.Combine(Path.GetTempPath(), "SipLineTest");
         public IPluginLocalization Localization { get; set; } = new MockLocalization();
+        public IReadOnlyCollection<string> LicensedFeatures { get; set; } = new[] { "*" };
 
         public List<string> Notifications { get; } = new();
         public List<string> Logs { get; } = new();
         public Dictionary<string, object> Settings { get; } = new();
         public List<IPluginSearchProvider> SearchProviders { get; } = new();
         public List<(MenuArea Area, string Label)> ContextMenuOptions { get; } = new();
+
+        public MockPluginContext()
+        {
+            Logger = new MockLogger(Logs);
+        }
 
         public event Action<string>? OnLanguageChanged;
         public event Action? OnDevicesChanged;
@@ -67,8 +74,8 @@ namespace SipLine.Plugin.Testing
 
         public void RegisterSearchProvider(IPluginSearchProvider provider) => SearchProviders.Add(provider);
         public void UnregisterSearchProvider(string providerName) => SearchProviders.RemoveAll(p => p.ProviderName == providerName);
-        
-        public void RegisterContextMenuOption(MenuArea area, string label, Action<object> callback) 
+
+        public void RegisterContextMenuOption(MenuArea area, string label, Action<object> callback)
             => ContextMenuOptions.Add((area, label));
 
         public void OpenPluginView(PluginViewRequest request) { }
@@ -100,6 +107,17 @@ namespace SipLine.Plugin.Testing
 
         public string AppVersion { get; set; } = "1.0.0-mock";
 
+        public bool HasLicensedFeature(string featureKey)
+        {
+            if (string.IsNullOrWhiteSpace(featureKey))
+                return false;
+
+            if (LicensedFeatures.Contains("*", StringComparer.OrdinalIgnoreCase))
+                return true;
+
+            return LicensedFeatures.Contains(featureKey.Trim(), StringComparer.OrdinalIgnoreCase);
+        }
+
         public Task RunOnUIThread(Action action)
         {
             action();
@@ -113,6 +131,23 @@ namespace SipLine.Plugin.Testing
 
         public void TriggerLanguageChanged(string lang) => OnLanguageChanged?.Invoke(lang);
         public void TriggerDevicesChanged() => OnDevicesChanged?.Invoke();
+
+        private sealed class MockLogger(List<string> logs) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter)
+            {
+                logs.Add($"[{logLevel}] {formatter(state, exception)}");
+            }
+        }
     }
 
     public class MockSipService : IPluginSipService
@@ -126,6 +161,7 @@ namespace SipLine.Plugin.Testing
         public event Action<CallInfo>? OnCallResumed;
         public event Action<DtmfInfo>? OnDtmfReceived;
         public event Action<bool>? OnDndChanged;
+        public event Action<AudioFrame>? OnAudioFrameReceived;
 
         public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.Registered;
         public bool IsInCall { get; set; }
@@ -144,7 +180,7 @@ namespace SipLine.Plugin.Testing
             return Task.FromResult(true);
         }
 
-        public void SendDtmf(char digit) 
+        public void SendDtmf(char digit)
         {
             OnDtmfReceived?.Invoke(new DtmfInfo { Digit = digit, DurationMs = 100 });
         }
@@ -152,6 +188,20 @@ namespace SipLine.Plugin.Testing
         public Task HangupCallAsync(string callId) => Task.CompletedTask;
         public Task SetHoldAsync(string callId, bool hold) => Task.CompletedTask;
         public Task TransferCallAsync(string callId, string destination) => Task.CompletedTask;
+        public Task AnswerCallAsync(string callId) => Task.CompletedTask;
+        public Task SendAudioFrameAsync(string callId, AudioFrame frame) => Task.CompletedTask;
+        public Task StartAudioStreamAsync(string callId)
+        {
+            IsAudioStreaming = true;
+            return Task.CompletedTask;
+        }
+        public Task StopAudioStreamAsync(string callId)
+        {
+            IsAudioStreaming = false;
+            return Task.CompletedTask;
+        }
+
+        public bool IsAudioStreaming { get; set; }
 
         public void TriggerIncomingCall(string from, string to)
         {
@@ -175,6 +225,7 @@ namespace SipLine.Plugin.Testing
         public void TriggerCallAnswered(CallInfo call) => OnCallAnswered?.Invoke(call);
         public void TriggerCallHeld(CallInfo call) => OnCallHeld?.Invoke(call);
         public void TriggerCallResumed(CallInfo call) => OnCallResumed?.Invoke(call);
+        public void TriggerAudioFrame(AudioFrame frame) => OnAudioFrameReceived?.Invoke(frame);
 
         /// <summary>
         /// Clears all event subscriptions.
@@ -189,6 +240,9 @@ namespace SipLine.Plugin.Testing
             OnCallHeld = null;
             OnCallResumed = null;
             OnDtmfReceived = null;
+            OnDndChanged = null;
+            OnAudioFrameReceived = null;
+            IsAudioStreaming = false;
         }
     }
 

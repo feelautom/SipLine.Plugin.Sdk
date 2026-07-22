@@ -1,0 +1,9 @@
+bin/
+obj/
+artifacts/
+out/
+*.nupkg
+*.snupkg
+*.user
+*.suo
+.vs/

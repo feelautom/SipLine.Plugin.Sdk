@@ -4,54 +4,54 @@ using System.Runtime.CompilerServices;
 namespace SipLine.Plugin.Sdk;
 
 /// <summary>
-/// Définit un champ de paramètre pour un plugin.
+/// Defines a settings field for a plugin.
 /// </summary>
 public sealed class PluginSettingsField : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     /// <summary>
-    /// Clé unique du champ (utilisée pour stocker/récupérer la valeur).
+    /// Gets or sets the unique key used to store and retrieve the value.
     /// </summary>
     public required string Key { get; set; }
 
     /// <summary>
-    /// Libellé affiché à l'utilisateur.
+    /// Gets or sets the label shown to the user.
     /// </summary>
     public required string Label { get; set; }
 
     /// <summary>
-    /// Type de champ.
+    /// Gets or sets the field type.
     /// </summary>
     public SettingsFieldType Type { get; set; } = SettingsFieldType.Text;
 
     /// <summary>
-    /// Si true, le plugin ne s'affiche pas dans le menu tant que ce champ n'est pas rempli.
+    /// Gets or sets whether the plugin stays hidden until this field is filled in.
     /// </summary>
     public bool IsRequired { get; set; }
 
     /// <summary>
-    /// Texte d'aide affiché dans le champ vide.
+    /// Gets or sets the placeholder shown when the field is empty.
     /// </summary>
     public string? Placeholder { get; set; }
 
     /// <summary>
-    /// Description ou aide supplémentaire.
+    /// Gets or sets additional help text.
     /// </summary>
     public string? Description { get; set; }
 
     /// <summary>
-    /// Valeur par défaut.
+    /// Gets or sets the default value.
     /// </summary>
     public string? DefaultValue { get; set; }
 
     /// <summary>
-    /// Options pour les champs de type Select.
+    /// Gets or sets the options for a Select field.
     /// </summary>
     public List<PluginSettingsOption>? Options { get; set; }
 
     private string? _value;
     /// <summary>
-    /// Valeur actuelle du champ.
+    /// Gets or sets the current field value.
     /// </summary>
     public string? Value
     {
@@ -67,12 +67,12 @@ public sealed class PluginSettingsField : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// ID du plugin propriétaire (pour la sauvegarde).
+    /// Gets or sets the owning plugin identifier used for persistence.
     /// </summary>
     public string? PluginId { get; set; }
 
     /// <summary>
-    /// Action appelée quand la valeur change.
+    /// Gets or sets the action invoked when the value changes.
     /// </summary>
     public Action<string, string?, string?>? OnValueChanged { get; set; }
 
@@ -87,7 +87,7 @@ public sealed class PluginSettingsField : INotifyPropertyChanged
 }
 
 /// <summary>
-/// Option pour un champ Select.
+/// Option for a Select field.
 /// </summary>
 public sealed class PluginSettingsOption
 {
@@ -96,28 +96,28 @@ public sealed class PluginSettingsOption
 }
 
 /// <summary>
-/// Types de champs de paramètres supportés.
+/// Supported settings field types.
 /// </summary>
 public enum SettingsFieldType
 {
-    /// <summary>Champ texte simple.</summary>
+    /// <summary>Plain text field.</summary>
     Text,
 
-    /// <summary>Champ mot de passe (masqué).</summary>
+    /// <summary>Masked password field.</summary>
     Password,
 
-    /// <summary>Case à cocher.</summary>
+    /// <summary>Checkbox field.</summary>
     Checkbox,
 
-    /// <summary>Liste déroulante.</summary>
+    /// <summary>Drop-down list.</summary>
     Select,
 
-    /// <summary>Champ numérique.</summary>
+    /// <summary>Numeric field.</summary>
     Number,
 
-    /// <summary>Note informative ou avertissement (pas de saisie).</summary>
+    /// <summary>Informational note or warning with no input.</summary>
     Info,
 
-    /// <summary>Lien cliquable.</summary>
+    /// <summary>Clickable link.</summary>
     Link
 }

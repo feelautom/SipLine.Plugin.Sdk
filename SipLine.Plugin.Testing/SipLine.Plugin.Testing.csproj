@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
@@ -6,7 +6,31 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Keep the testing package aligned with the SDK in both repository layouts. -->
+    <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\sipline-sdk-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == '' AND Exists('$(MSBuildProjectDirectory)\..\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\..\sipline-sdk-version.txt</SipLineVersionFile>
+    <SipLineVersionFile Condition="'$(SipLineVersionFile)' == '' AND Exists('$(MSBuildProjectDirectory)\..\..\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\..\..\sipline-sdk-version.txt</SipLineVersionFile>
+
+    <PackageId>SipLine.Plugin.Testing</PackageId>
+    <Version>$([System.IO.File]::ReadAllText($(SipLineVersionFile)).Trim())</Version>
+    <Authors>Franck</Authors>
+    <Description>Official testing helpers and mocks for SipLine plugins.</Description>
+    <PackageTags>sipline;plugin;testing;mocks;sdk;softphone</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/feelautom/SipLine.Plugin.Sdk</RepositoryUrl>
+    <IsPackable>true</IsPackable>
+
+    <!-- Keep build paths out of the public assembly and make package builds reproducible. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <PathMap>$(MSBuildProjectDirectory)=.,$(BaseIntermediateOutputPath)=./obj/</PathMap>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Monorepo location: SDK is a sibling -->

@@ -1,3 +1,5 @@
+using SipLine.Plugin.Sdk.Models;
+
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
@@ -34,6 +36,13 @@ namespace SipLine.Plugin.Sdk
 
         /// <summary>Do Not Disturb state changed</summary>
         event Action<bool>? OnDndChanged;
+
+        /// <summary>
+        /// Real-time audio frame received during an active call.
+        /// Requires feature: telephony.audio_stream.
+        /// Frames are PCM 16-bit, mono, 8000 Hz, typically 20ms (160 samples).
+        /// </summary>
+        event Action<AudioFrame>? OnAudioFrameReceived;
 
         #endregion
 
@@ -90,6 +99,36 @@ namespace SipLine.Plugin.Sdk
         /// <param name="callId">ID of the call to transfer</param>
         /// <param name="destination">Target number or extension</param>
         Task TransferCallAsync(string callId, string destination);
+
+        /// <summary>
+        /// Answers an incoming call programmatically.
+        /// Requires feature: telephony.answer_call.
+        /// </summary>
+        /// <param name="callId">ID of the incoming call to answer</param>
+        Task AnswerCallAsync(string callId);
+
+        /// <summary>
+        /// Sends a PCM audio frame into an active call (e.g. TTS playback).
+        /// Requires feature: telephony.send_audio.
+        /// Audio must be PCM 16-bit, mono, 8000 Hz.
+        /// </summary>
+        /// <param name="callId">ID of the active call</param>
+        /// <param name="frame">Audio frame to inject</param>
+        Task SendAudioFrameAsync(string callId, AudioFrame frame);
+
+        /// <summary>
+        /// Starts streaming audio frames to the plugin for the given call.
+        /// Once started, OnAudioFrameReceived will fire for each frame.
+        /// Requires feature: telephony.audio_stream.
+        /// </summary>
+        /// <param name="callId">ID of the active call</param>
+        Task StartAudioStreamAsync(string callId);
+
+        /// <summary>
+        /// Stops streaming audio frames for the given call.
+        /// </summary>
+        /// <param name="callId">ID of the active call</param>
+        Task StopAudioStreamAsync(string callId);
 
         #endregion
     }

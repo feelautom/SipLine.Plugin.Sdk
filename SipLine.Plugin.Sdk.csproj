@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 
-    <!-- Version detection -->
     <!-- Version detection: try Export location (root) first, then Monorepo location -->
     <SipLineVersionFile Condition="Exists('$(MSBuildProjectDirectory)\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\sipline-sdk-version.txt</SipLineVersionFile>
     <SipLineVersionFile Condition="'$(SipLineVersionFile)' == '' AND Exists('$(MSBuildProjectDirectory)\..\sipline-sdk-version.txt')">$(MSBuildProjectDirectory)\..\sipline-sdk-version.txt</SipLineVersionFile>
@@ -23,11 +22,11 @@
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/feelautom/SipLine.Plugin.Sdk</RepositoryUrl>
 
-    <!-- SÃ©curitÃ©: masquer les chemins locaux dans les PDB (symbol packages) -->
+    <!-- Sécurité: masquer les chemins locaux dans les PDB (symbol packages) -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <PathMap>$(MSBuildProjectDirectory)=.</PathMap>
+    <PathMap>$(MSBuildProjectDirectory)=.,$(BaseIntermediateOutputPath)=./obj/</PathMap>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,7 +37,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
-    <PackageReference Include="SoftLicence.SDK" Version="1.0.0" />
+    <PackageReference Include="SoftLicence.SDK" Version="1.1.11" />
     <PackageReference Include="System.Management" Version="10.0.2" />
   </ItemGroup>
 
@@ -50,4 +49,3 @@
   </ItemGroup>
 
 </Project>
-

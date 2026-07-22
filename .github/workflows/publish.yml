@@ -4,26 +4,35 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 jobs:
   publish:
     name: Publish to Registries
-    runs-on: windows-latest
+    runs-on: windows-2025
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '9.0.x'
-          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GH_TOKEN_DIRECT }}
+          dotnet-version: '9.0.316'
+
+      - name: Validate Release Tag
+        shell: pwsh
+        run: |
+          $version = (Get-Content sipline-sdk-version.txt -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Invalid stable SDK version: $version"
+          }
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            throw "Tag ${{ github.ref_name }} does not match SDK version $version"
+          }
+          "SDK_VERSION=$version" >> $env:GITHUB_ENV
 
       # --- Build & Pack SDK ---
       - name: Restore SDK
@@ -45,12 +54,38 @@ jobs:
       - name: Pack Testing Lib
         run: dotnet pack SipLine.Plugin.Testing/SipLine.Plugin.Testing.csproj --configuration Release --no-build -o out
 
-      # --- Push all packages ---
+      - name: Verify Package Set
+        shell: pwsh
+        run: |
+          $expected = @(
+            "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg",
+            "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg"
+          )
+          $actual = @(Get-ChildItem out -Filter *.nupkg -File)
+          if ($actual.Count -ne $expected.Count) {
+            throw "Expected exactly two packages, found $($actual.Count)."
+          }
+          foreach ($package in $expected) {
+            if (-not (Test-Path -LiteralPath $package)) {
+              throw "Missing expected package: $package"
+            }
+          }
+
       - name: Push to GitHub Packages
-        run: Get-ChildItem out/*.nupkg | foreach { dotnet nuget push $_.FullName --api-key ${{ secrets.GH_TOKEN_DIRECT }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate }
+        shell: pwsh
+        env:
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:GITHUB_PACKAGES_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:GITHUB_PACKAGES_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
       - name: Push to NuGet.org
-        if: env.NUGET_API_KEY != ''
+        shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: Get-ChildItem out/*.nupkg | foreach { dotnet nuget push $_.FullName --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate }
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+            throw "The NUGET_API_KEY secret is required for a public release."
+          }
+          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
+          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"

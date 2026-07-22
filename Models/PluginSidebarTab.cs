@@ -6,25 +6,25 @@ using SipLine.Plugin.Sdk.Enums;
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Définition d'un onglet à ajouter dans la barre latérale.
+    /// Defines a tab to add to the sidebar.
     /// </summary>
     public sealed class PluginSidebarTab : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
-        /// Identifiant unique de l'onglet.
+        /// Gets or sets the unique tab identifier.
         /// </summary>
         public string Id { get; set; } = "";
 
         /// <summary>
-        /// ID du plugin propriétaire.
+        /// Gets or sets the identifier of the owning plugin.
         /// </summary>
         public string PluginId { get; set; } = "";
 
         private string _title = "";
         /// <summary>
-        /// Titre de l'onglet (affiché dans la sidebar étendue).
+        /// Gets or sets the tab title shown in the expanded sidebar.
         /// </summary>
         public string Title
         {
@@ -41,7 +41,7 @@ namespace SipLine.Plugin.Sdk
 
         private string _tooltip = "";
         /// <summary>
-        /// Tooltip affiché au survol (sidebar réduite).
+        /// Gets or sets the tooltip shown when hovering over the collapsed sidebar.
         /// </summary>
         public string Tooltip
         {
@@ -57,24 +57,24 @@ namespace SipLine.Plugin.Sdk
         }
 
         /// <summary>
-        /// Icône standard (prioritaire sur IconPathData).
+        /// Gets or sets the standard icon, which takes precedence over IconPathData.
         /// </summary>
         public PluginIcon? Icon { get; set; }
 
         /// <summary>
-        /// Icône au format Geometry Path Data (SVG path).
+        /// Gets or sets the icon as geometry path data (SVG path).
         /// </summary>
         public string IconPathData { get; set; } = "";
 
         /// <summary>
-        /// Ordre d'affichage (plus petit = plus haut).
-        /// Les onglets de l'app sont à 0-100, les plugins commencent à 200.
+        /// Gets or sets the display order; lower values appear first.
+        /// Application tabs use 0-100 and plugin tabs start at 200.
         /// </summary>
         public int Order { get; set; } = 200;
 
         private bool _isVisible = true;
         /// <summary>
-        /// L'onglet est-il visible ?
+        /// Gets or sets whether the tab is visible.
         /// </summary>
         public bool IsVisible
         {
@@ -96,7 +96,7 @@ namespace SipLine.Plugin.Sdk
 
         private int? _badge;
         /// <summary>
-        /// Badge à afficher (ex: nombre de notifications). Null = pas de badge.
+        /// Gets or sets the badge text, such as a notification count; null hides the badge.
         /// </summary>
         public int? Badge
         {
@@ -112,14 +112,14 @@ namespace SipLine.Plugin.Sdk
         }
 
         /// <summary>
-        /// Fonction appelée pour créer le contenu de l'onglet.
-        /// Doit retourner un UserControl WPF.
+        /// Gets or sets the factory used to create the tab content.
+        /// The factory must return a WPF UserControl.
         /// </summary>
         public Func<object>? ContentFactory { get; set; }
 
         /// <summary>
-        /// Commande exécutée quand l'onglet est sélectionné (optionnel).
-        /// Si null, le ContentFactory est utilisé pour afficher le contenu.
+        /// Gets or sets the optional command executed when the tab is selected.
+        /// When null, ContentFactory is used to display the content.
         /// </summary>
         public ICommand? Command { get; set; }
     }

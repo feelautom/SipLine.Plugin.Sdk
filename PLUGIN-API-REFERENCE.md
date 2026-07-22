@@ -1,6 +1,6 @@
 # SipLine Plugin SDK — API Reference
 
-> **SDK Version:** 1.2.2 · **Target:** .NET 9.0 Windows
+> **SDK Version:** 1.3.0 · **Target:** .NET 9.0 Windows
 
 This document is the complete API reference for the SipLine Plugin SDK. It covers every
 interface, method, property, and event exposed to plugins, along with the access level
@@ -56,6 +56,7 @@ SipLine distinguishes three plugin types via `ISipLinePlugin.LicenseType`:
 | **Contacts** | List, add, update, delete contacts |
 | **DND Control** | Set DND state, receive DND change events |
 | **Audio Control** | Set volume, mute/unmute microphone |
+| **Real-time Call Audio** | Answer calls, stream PCM frames, and inject PCM audio when the corresponding feature is licensed |
 | **Search** | Register a global search provider |
 | **Context Menus** | Inject options into history, contacts, and active call menus |
 
@@ -195,6 +196,7 @@ Access via `context.SipService`.
 | `OnDtmfReceived` | `DtmfInfo` | DTMF digit received during call | 🔒 | ✅ ⭐ |
 | `OnRegistrationChanged` | `RegistrationStatus` | SIP registration state changed | ✅ | ✅ |
 | `OnDndChanged` | `bool` | Do Not Disturb state changed | 🔒 | ✅ ⭐ |
+| `OnAudioFrameReceived` | `AudioFrame` | PCM frame received after starting a call audio stream | 🔒 | ✅ ⭐ |
 
 ### State Properties
 
@@ -215,6 +217,10 @@ Access via `context.SipService`.
 | `SetHoldAsync(callId, hold)` | `Task` | Holds or resumes a call | 🔒 | ✅ ⭐ |
 | `TransferCallAsync(callId, destination)` | `Task` | Blind transfer to another number | 🔒 | ✅ ⭐ |
 | `SendDtmf(digit)` | `void` | Sends a DTMF tone during a call | 🔒 | ✅ ⭐ |
+| `AnswerCallAsync(callId)` | `Task` | Answers an incoming call (`telephony.answer_call`) | 🔒 | ✅ ⭐ |
+| `SendAudioFrameAsync(callId, frame)` | `Task` | Injects PCM 16-bit mono 8 kHz audio (`telephony.send_audio`) | 🔒 | ✅ ⭐ |
+| `StartAudioStreamAsync(callId)` | `Task` | Starts PCM frame delivery (`telephony.audio_stream`) | 🔒 | ✅ ⭐ |
+| `StopAudioStreamAsync(callId)` | `Task` | Stops PCM frame delivery for the call | 🔒 | ✅ ⭐ |
 
 ### Model Classes
 
@@ -250,6 +256,19 @@ Provided via `OnDtmfReceived`.
 | `Digit` | `char` | The pressed digit (0–9, *, #) |
 | `DurationMs` | `int` | Duration in milliseconds |
 | `CallId` | `string` | Associated call ID |
+
+#### `AudioFrame`
+Represents one real-time PCM frame associated with an active call.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `CallId` | `string` | Exact opaque call identifier |
+| `Samples` | `short[]` | PCM 16-bit signed mono samples |
+| `Timestamp` | `DateTime` | Capture timestamp |
+| `Direction` | `AudioDirection` | `Incoming` or `Outgoing` |
+| `SampleRate` | `int` | Always 8000 Hz |
+| `Channels` | `int` | Always 1 |
+| `Duration` | `TimeSpan` | Computed from the sample count |
 
 ### Enums
 
@@ -519,7 +538,7 @@ Browse icons at [lucide.dev/icons](https://lucide.dev/icons).
 Use the `SipLine.Plugin.Testing` NuGet package to write unit tests without running the host application.
 
 ```xml
-<PackageReference Include="SipLine.Plugin.Testing" Version="1.2.2" />
+<PackageReference Include="SipLine.Plugin.Testing" Version="1.3.0" />
 ```
 
 ```csharp
@@ -548,6 +567,9 @@ public async Task Should_Show_Notification_On_Incoming_Call()
 | `((MockSipService)ctx.SipService).TriggerCallHeld(call)` | Places call on hold |
 | `((MockSipService)ctx.SipService).TriggerCallResumed(call)` | Resumes held call |
 | `((MockSipService)ctx.SipService).TriggerRegistrationChanged(status)` | Changes registration state |
+| `((MockSipService)ctx.SipService).TriggerAudioFrame(frame)` | Delivers a PCM frame to subscribed plugin code |
+| `((MockSipService)ctx.SipService).StartAudioStreamAsync(callId)` | Starts the mock audio stream for an exact call ID |
+| `((MockSipService)ctx.SipService).StopAudioStreamAsync(callId)` | Stops the mock audio stream |
 | `((MockCallHistory)ctx.CallHistory).TriggerCallAdded(entry)` | Adds an entry to history |
 | `((MockAudioService)ctx.Audio).TriggerVolumeChanged(vol)` | Simulates volume change |
 | `ctx.TriggerLanguageChanged("fr")` | Simulates language switch |

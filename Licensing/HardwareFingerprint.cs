@@ -3,12 +3,12 @@ using SoftLicence.SDK;
 namespace SipLine.Plugin.Sdk.Licensing;
 
 /// <summary>
-/// Passerelle vers le SDK officiel SoftLicence pour l'identité matérielle.
+/// Provides hardware identity through the official SoftLicence SDK.
 /// </summary>
 public static class HardwareFingerprint
 {
     /// <summary>
-    /// Obtient l'identifiant matériel unique au format officiel (16 Hexa).
+    /// Gets the unique hardware identifier in the official 16-character hexadecimal format.
     /// </summary>
     public static string GetHardwareId()
     {
@@ -16,7 +16,7 @@ public static class HardwareFingerprint
     }
 
     /// <summary>
-    /// Obtient l'identifiant formaté pour affichage (ex: A1B2-C3D4...).
+    /// Gets the hardware identifier formatted for display (for example, A1B2-C3D4...).
     /// </summary>
     public static string GetFormattedHardwareId()
     {

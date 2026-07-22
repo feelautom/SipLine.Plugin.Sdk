@@ -1,47 +1,65 @@
 namespace SipLine.Plugin.Sdk
 {
     /// <summary>
-    /// Service de gestion des plugins.
+    /// Result of uninstalling a plugin.
+    /// </summary>
+    public enum PluginUninstallResult
+    {
+        /// <summary>The plugin could not be uninstalled.</summary>
+        Failed,
+        /// <summary>The plugin was deleted immediately.</summary>
+        Deleted,
+        /// <summary>Locked files are scheduled for deletion after restart.</summary>
+        PendingRestart
+    }
+
+    /// <summary>
+    /// Manages the installed plugins.
     /// </summary>
     public interface IPluginService
     {
         /// <summary>
-        /// Liste des plugins chargés.
+        /// Gets the loaded plugins.
         /// </summary>
         IReadOnlyList<PluginInfo> LoadedPlugins { get; }
 
         /// <summary>
-        /// Charge tous les plugins depuis le dossier configuré.
+        /// Loads every plugin from the configured directory.
         /// </summary>
         Task LoadPluginsAsync();
 
         /// <summary>
-        /// Active ou désactive un plugin.
+        /// Enables or disables a plugin.
         /// </summary>
         Task SetPluginEnabledAsync(string pluginId, bool enabled);
 
         /// <summary>
-        /// Décharge tous les plugins.
+        /// Unloads all plugins.
         /// </summary>
         Task UnloadAllAsync();
 
         /// <summary>
-        /// Recharge un plugin spécifique.
+        /// Reloads a specific plugin.
         /// </summary>
         Task ReloadPluginAsync(string pluginId);
 
         /// <summary>
-        /// Événement déclenché quand un plugin est chargé.
+        /// Uninstalls a plugin by unloading its assembly and deleting its directory.
+        /// </summary>
+        Task<PluginUninstallResult> UninstallPluginAsync(string pluginId);
+
+        /// <summary>
+        /// Raised when a plugin is loaded.
         /// </summary>
         event Action<PluginInfo>? OnPluginLoaded;
 
         /// <summary>
-        /// Événement déclenché quand un plugin est déchargé.
+        /// Raised when a plugin is unloaded.
         /// </summary>
         event Action<string>? OnPluginUnloaded;
 
         /// <summary>
-        /// Événement déclenché quand l'état d'un plugin change.
+        /// Raised when a plugin state changes.
         /// </summary>
         event Action<PluginInfo>? OnPluginStateChanged;
     }
