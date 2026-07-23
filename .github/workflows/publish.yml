@@ -21,6 +21,9 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: '9.0.316'
+          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GH_TOKEN_DIRECT }}
 
       - name: Validate Release Tag
         shell: pwsh
@@ -73,15 +76,14 @@ jobs:
 
       - name: Push to GitHub Packages
         shell: pwsh
-        env:
-          GITHUB_PACKAGES_TOKEN: ${{ secrets.GH_TOKEN_DIRECT }}
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          if ([string]::IsNullOrWhiteSpace($env:GITHUB_PACKAGES_TOKEN)) {
-            throw "The GH_TOKEN_DIRECT secret is required for GitHub Packages."
+          $authConfig = Join-Path (Split-Path -Parent $env:GITHUB_WORKSPACE) "nuget.config"
+          if (-not (Test-Path -LiteralPath $authConfig)) {
+            throw "The authenticated GitHub Packages NuGet configuration was not generated."
           }
-          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:GITHUB_PACKAGES_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:GITHUB_PACKAGES_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --configfile $authConfig
+          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --configfile $authConfig
 
       - name: Push to NuGet.org
         shell: pwsh
