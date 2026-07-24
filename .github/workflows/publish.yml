@@ -76,14 +76,22 @@ jobs:
 
       - name: Push to GitHub Packages
         shell: pwsh
+        env:
+          GH_TOKEN_DIRECT: ${{ secrets.GH_TOKEN_DIRECT }}
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          $authConfig = Join-Path (Split-Path -Parent $env:GITHUB_WORKSPACE) "nuget.config"
-          if (-not (Test-Path -LiteralPath $authConfig)) {
-            throw "The authenticated GitHub Packages NuGet configuration was not generated."
+          if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN_DIRECT)) {
+            throw "The GH_TOKEN_DIRECT secret is required for GitHub Packages."
           }
-          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --configfile $authConfig
-          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --configfile $authConfig
+          $githubPackagesSource = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:GH_TOKEN_DIRECT --source $githubPackagesSource
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to publish SipLine.Plugin.Sdk to GitHub Packages."
+          }
+          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:GH_TOKEN_DIRECT --source $githubPackagesSource
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to publish SipLine.Plugin.Testing to GitHub Packages."
+          }
 
       - name: Push to NuGet.org
         shell: pwsh
@@ -95,4 +103,10 @@ jobs:
             throw "The NUGET_API_KEY secret is required for a public release."
           }
           dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to publish SipLine.Plugin.Sdk to NuGet.org."
+          }
           dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to publish SipLine.Plugin.Testing to NuGet.org."
+          }
