@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SipLine.Plugin.Sdk.Licensing;
 using SipLine.Plugin.Sdk.Models;
 
 namespace SipLine.Plugin.Sdk
@@ -212,6 +213,40 @@ namespace SipLine.Plugin.Sdk
         /// Executes a function on the application's UI thread and returns its result.
         /// </summary>
         Task<T> RunOnUIThread<T>(Func<T> function);
+
+        /// <summary>
+        /// Rights currently in force for the plugin (SDK 1.4.0): those the user granted, plus, for a commercial
+        /// plugin, <see cref="PluginPermissions.CallHistoryRead"/>, <see cref="PluginPermissions.ContactsRead"/> and
+        /// <see cref="PluginPermissions.CallControl"/>.
+        /// </summary>
+        PluginPermissions GrantedPermissions { get; }
+
+        /// <summary>
+        /// Asks the user for rights (SDK 1.4.0). When every requested right is already granted and
+        /// <see cref="PluginPermissionRequest.AlwaysAsk"/> is false, returns at once without any window; otherwise
+        /// shows one SipLine consent window where the user ticks the rights to grant. Closing the window keeps the
+        /// previous choice. The choice is stored by SipLine and survives restarts.
+        /// </summary>
+        /// <param name="request">Rights to ask for and the reason shown to the user.</param>
+        /// <returns>The rights in force after the user's answer (<see cref="GrantedPermissions"/>).</returns>
+        Task<PluginPermissions> RequestPermissionsAsync(PluginPermissionRequest request);
+
+        /// <summary>
+        /// Raised with the new <see cref="GrantedPermissions"/> when the user changes the plugin's rights (SDK 1.4.0).
+        /// </summary>
+        event Action<PluginPermissions>? OnPermissionsChanged;
+
+        /// <summary>
+        /// SIP line settings: accounts, active account, apply and wait for the registration, registration test
+        /// (SDK 1.4.0, requires <see cref="PluginPermissions.LineSettings"/>).
+        /// </summary>
+        IPluginLineSettings LineSettings { get; }
+
+        /// <summary>
+        /// SIP trace, call media and SRTP outcome, registration events and recent logs, all masked
+        /// (SDK 1.4.0, requires <see cref="PluginPermissions.Diagnostics"/>).
+        /// </summary>
+        IPluginDiagnostics Diagnostics { get; }
     }
 
     /// <summary>

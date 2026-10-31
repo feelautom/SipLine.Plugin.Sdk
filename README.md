@@ -31,7 +31,7 @@ To start building a plugin, create a new **.NET 9.0 Windows Class Library** and 
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="SipLine.Plugin.Sdk" Version="1.3.0" Private="false" ExcludeAssets="runtime" />
+    <PackageReference Include="SipLine.Plugin.Sdk" Version="1.4.0" Private="false" ExcludeAssets="runtime" />
 </ItemGroup>
 ```
 
@@ -195,6 +195,8 @@ SipLine supports three types of plugins, defined by the `LicenseType` property:
     ```
 
 3.  **Integrated:** Reserved for official built-in plugins. Do not use this type for your own plugins.
+
+Since SDK 1.4.0, any plugin can ask the user for rights with `context.RequestPermissionsAsync(...)`: call history, contacts (read only), call control, SIP line settings (`context.LineSettings`) and diagnostics (`context.Diagnostics`). SipLine shows one consent window and stores the choice; a commercial plugin keeps its call history, contacts and call control access without asking. A plugin that listens on a port must bind to `PluginLoopback.Address` only and protect its clients with `PluginPairingToken`. See `docs/PLUGIN-SDK.md`, section 3ter.
 
 For commercial plugins, SipLine also supports:
 - `pluginId` check against `ISipLinePlugin.Id`

@@ -163,10 +163,24 @@ namespace SipLine.Plugin.Sdk
         /// </summary>
         public bool IsPlanRequired => LicenseStatus == PluginLicenseStatus.PlanRequired;
 
+        private List<PluginSettingsField> _settingsFields = new();
         /// <summary>
-        /// Gets or sets the settings fields declared by the plugin.
+        /// Gets or sets the settings fields declared by the plugin. A new list is announced, so the Plugins screen
+        /// shows the fields a plugin registers when it is enabled after startup (TKT-002824).
         /// </summary>
-        public List<PluginSettingsField> SettingsFields { get; set; } = new();
+        public List<PluginSettingsField> SettingsFields
+        {
+            get => _settingsFields;
+            set
+            {
+                if (!ReferenceEquals(_settingsFields, value))
+                {
+                    _settingsFields = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(HasSettingsFields));
+                }
+            }
+        }
 
         /// <summary>
         /// Gets whether the plugin declares settings fields.

@@ -1,4 +1,4 @@
-name: Publish SDK & Testing
+name: Publish SDK & Testing to NuGet.org
 
 on:
   push:
@@ -12,7 +12,6 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-      packages: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -21,9 +20,6 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: '9.0.316'
-          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GH_TOKEN_DIRECT }}
 
       - name: Validate Release Tag
         shell: pwsh
@@ -74,23 +70,14 @@ jobs:
             }
           }
 
-      - name: Push to GitHub Packages
+      - name: Verify NuGet Versions Are Unpublished
         shell: pwsh
-        env:
-          GH_TOKEN_DIRECT: ${{ secrets.GH_TOKEN_DIRECT }}
         run: |
-          $PSNativeCommandUseErrorActionPreference = $true
-          if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN_DIRECT)) {
-            throw "The GH_TOKEN_DIRECT secret is required for GitHub Packages."
-          }
-          $githubPackagesSource = "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:GH_TOKEN_DIRECT --source $githubPackagesSource
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to publish SipLine.Plugin.Sdk to GitHub Packages."
-          }
-          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:GH_TOKEN_DIRECT --source $githubPackagesSource
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to publish SipLine.Plugin.Testing to GitHub Packages."
+          foreach ($package in @("sipline.plugin.sdk", "sipline.plugin.testing")) {
+            $index = Invoke-RestMethod "https://api.nuget.org/v3-flatcontainer/$package/index.json"
+            if ($index.versions -contains $env:SDK_VERSION) {
+              throw "$package $env:SDK_VERSION is already published on NuGet.org."
+            }
           }
 
       - name: Push to NuGet.org

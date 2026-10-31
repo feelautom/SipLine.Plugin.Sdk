@@ -5,7 +5,7 @@ Official mocks and test helpers for plugins built with `SipLine.Plugin.Sdk`.
 ## Installation
 
 ```xml
-<PackageReference Include="SipLine.Plugin.Testing" Version="1.3.0" />
+<PackageReference Include="SipLine.Plugin.Testing" Version="1.4.0" />
 ```
 
 The package depends on the matching `SipLine.Plugin.Sdk` version.

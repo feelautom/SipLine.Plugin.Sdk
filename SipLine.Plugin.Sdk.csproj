@@ -37,7 +37,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
-    <PackageReference Include="SoftLicence.SDK" Version="1.1.11" />
+    <!-- UUID identity and signed-license replacement contract; qualify the server before rollout. -->
+    <PackageReference Include="SoftLicence.SDK" Version="2.0.0" />
     <PackageReference Include="System.Management" Version="10.0.2" />
   </ItemGroup>
 

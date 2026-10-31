@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SipLine.Plugin.Testing
@@ -128,6 +129,47 @@ namespace SipLine.Plugin.Testing
         {
             return Task.FromResult(function());
         }
+
+        /// <summary>Rights in force; set it to simulate the user's earlier choice (SDK 1.4.0).</summary>
+        public PluginPermissions GrantedPermissions { get; set; } = PluginPermissions.None;
+
+        /// <summary>
+        /// Answer of the simulated consent window: the rights the user ticks among those requested.
+        /// Null simulates a window closed without answering. Defaults to granting everything requested.
+        /// </summary>
+        public Func<PluginPermissionRequest, PluginPermissions?> PermissionAnswer { get; set; } = request => request.Requested;
+
+        /// <summary>Requests received by <see cref="RequestPermissionsAsync"/>.</summary>
+        public List<PluginPermissionRequest> PermissionRequests { get; } = new();
+
+        /// <inheritdoc />
+        public event Action<PluginPermissions>? OnPermissionsChanged;
+
+        /// <inheritdoc />
+        public Task<PluginPermissions> RequestPermissionsAsync(PluginPermissionRequest request)
+        {
+            PermissionRequests.Add(request);
+            var requested = request.Requested & PluginPermissions.All;
+            if (!request.AlwaysAsk && (GrantedPermissions & requested) == requested)
+                return Task.FromResult(GrantedPermissions);
+            var answer = PermissionAnswer(request);
+            if (answer != null)
+            {
+                var updated = (GrantedPermissions & ~requested) | (answer.Value & requested);
+                if (updated != GrantedPermissions)
+                {
+                    GrantedPermissions = updated;
+                    OnPermissionsChanged?.Invoke(updated);
+                }
+            }
+            return Task.FromResult(GrantedPermissions);
+        }
+
+        /// <inheritdoc />
+        public IPluginLineSettings LineSettings { get; set; } = new MockLineSettings();
+
+        /// <inheritdoc />
+        public IPluginDiagnostics Diagnostics { get; set; } = new MockDiagnostics();
 
         public void TriggerLanguageChanged(string lang) => OnLanguageChanged?.Invoke(lang);
         public void TriggerDevicesChanged() => OnDevicesChanged?.Invoke();
@@ -287,5 +329,93 @@ namespace SipLine.Plugin.Testing
         public CultureInfo CurrentCulture { get; set; } = CultureInfo.CurrentUICulture;
         public string GetString(string key) => key;
         public string GetString(string key, params object[] args) => string.Format(key, args);
+    }
+
+    /// <summary>
+    /// In-memory SIP line settings for plugin tests (SDK 1.4.0). It does not check permissions.
+    /// </summary>
+    public class MockLineSettings : IPluginLineSettings
+    {
+        /// <summary>Accounts returned by <see cref="GetAccounts"/>.</summary>
+        public List<PluginSipAccount> Accounts { get; } = new();
+
+        /// <summary>Updates received.</summary>
+        public List<PluginSipAccountUpdate> Updates { get; } = new();
+
+        /// <summary>Result returned by <see cref="ApplyAndWaitForRegistrationAsync"/>.</summary>
+        public PluginRegistrationResult NextRegistrationResult { get; set; } = new() { State = PluginRegistrationState.Registered };
+
+        /// <summary>Result returned by <see cref="TestRegistrationAsync"/>.</summary>
+        public PluginRegistrationTestResult NextTestResult { get; set; } = new() { Success = true, Message = "OK" };
+
+        /// <inheritdoc />
+        public string? ActiveAccountId { get; set; }
+
+        /// <inheritdoc />
+        public IReadOnlyList<PluginSipAccount> GetAccounts() => Accounts.ToList();
+
+        /// <inheritdoc />
+        public Task<PluginSipAccount> UpdateAccountAsync(PluginSipAccountUpdate update)
+        {
+            Updates.Add(update);
+            var account = Accounts.FirstOrDefault(a => a.Id == update.AccountId);
+            if (account == null)
+            {
+                account = new PluginSipAccount { Id = update.AccountId ?? Guid.NewGuid().ToString("N")[..8], IsEnabled = true };
+                Accounts.Add(account);
+            }
+            if (update.Transport != null) account.Transport = update.Transport.Value;
+            if (update.SrtpEnabled != null) account.SrtpEnabled = update.SrtpEnabled.Value;
+            if (update.ServerHost != null) account.ServerHost = update.ServerHost;
+            if (update.ServerPort != null) account.ServerPort = update.ServerPort == 0 ? null : update.ServerPort;
+            if (update.NewPassword != null) account.HasPassword = update.NewPassword.Length > 0;
+            return Task.FromResult(account);
+        }
+
+        /// <inheritdoc />
+        public Task SetActiveAccountAsync(string accountId)
+        {
+            ActiveAccountId = accountId;
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public Task<PluginRegistrationResult> ApplyAndWaitForRegistrationAsync(string? accountId, TimeSpan timeout, CancellationToken cancellationToken = default)
+            => Task.FromResult(NextRegistrationResult);
+
+        /// <inheritdoc />
+        public Task<PluginRegistrationTestResult> TestRegistrationAsync() => Task.FromResult(NextTestResult);
+    }
+
+    /// <summary>
+    /// In-memory diagnostics for plugin tests (SDK 1.4.0). It does not check permissions.
+    /// </summary>
+    public class MockDiagnostics : IPluginDiagnostics
+    {
+        /// <summary>SIP messages returned by <see cref="GetSipTrace"/>.</summary>
+        public List<PluginSipTraceEntry> Trace { get; } = new();
+
+        /// <summary>Outcome returned by <see cref="GetCallMedia"/>.</summary>
+        public PluginCallMediaInfo? CallMedia { get; set; }
+
+        /// <summary>Outcomes returned by <see cref="GetRegistrationEvents"/>.</summary>
+        public List<PluginRegistrationEvent> Registrations { get; } = new();
+
+        /// <summary>Lines returned by <see cref="GetRecentLogs"/>.</summary>
+        public List<PluginLogEntry> Logs { get; } = new();
+
+        /// <inheritdoc />
+        public IReadOnlyList<PluginSipTraceEntry> GetSipTrace(int maxCount = 100, string? callId = null)
+            => Trace.Where(t => callId == null || t.CallId == callId).TakeLast(Math.Max(1, maxCount)).ToList();
+
+        /// <inheritdoc />
+        public PluginCallMediaInfo? GetCallMedia(string? callId = null) => CallMedia;
+
+        /// <inheritdoc />
+        public IReadOnlyList<PluginRegistrationEvent> GetRegistrationEvents(int maxCount = 50)
+            => Registrations.TakeLast(Math.Max(1, maxCount)).ToList();
+
+        /// <inheritdoc />
+        public IReadOnlyList<PluginLogEntry> GetRecentLogs(int maxCount = 200) => Logs.TakeLast(Math.Max(1, maxCount)).ToList();
     }
 }

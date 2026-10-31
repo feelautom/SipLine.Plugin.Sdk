@@ -20,7 +20,7 @@ public static class LicenseValidator
     public const string PublicKeyXml = "<RSAKeyValue><Modulus>w0/oowAxPqkMan/gq2EoT5HFgx2xCHR6ANDq8i8HBHHVTLwk4LkTF8ECLAIpGmCvwwpGnaIU/SiotjJ4rhF37tz4lPn2cReyOxDtSK8v1n3BxI6RH6GOaS192zlLBzYeJey74TV7IZXYwFfLdhHrzi2rOyNMea179vEbLaqh6+rZFLhX6weJPu0HnIAqDOnU74RG2nWIVKcftG6akbf3YjwUXycm1ywGxy8RMbWzjM6afPUrlsL0IxgRebzD2FF/wtQqE+YHEjs7t7QPG/1IzHDNKXJctftXxnyajSbe6hfuuqBp5A86thnulBOJ0E5MNYZNQJziYkGEt+MiGxDslkoqdGtX8L4vViJIY/RGHKeNeucfMvydLaoOtGz42/WaD3aOZOdUxdr+1rGZE1//yU9h7pl/ZDYRwKLiffgLEtagITHUkQ6aF2hLu3f0trIKX9JvHDoUdnD0QM/Dr06gjWyexM/el5e8k6+PBI8QCqkDM5l+rW90nIC0idtXQURGX6VgYLtp18PmfSvMK0+V5f5xk5ZqFiSfN+Rh2VHF12IJ5kJa9uBLQMuwUtx02dn9e4ijFvoFrcrtb1NykhIsMjxmM5u1HktoojEXKpmKxtayX2D3YorBwJa0ryHjKGWHP4AxUxYN3EtLb1lXJu6zJRHLsFY0wIUHbs3UeSDALlM=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
 
     /// <summary>
-    /// Validates a license for a plugin.
+    /// Validates a signed plugin license against the UUID identity; refusal preserves its AR support code.
     /// </summary>
     /// <param name="licenseContent">Official Base64 license content or raw signed JSON.</param>
     /// <param name="pluginId">Identifier of the plugin to validate.</param>
@@ -37,6 +37,10 @@ public static class LicenseValidator
                 PublicKeyXml,
                 HardwareFingerprint.GetHardwareId());
         }
+        catch (MachineIdentityRefusedException ex)
+        {
+            return LicenseValidationResult.Invalid(ex.Message);
+        }
         catch
         {
             return LicenseValidationResult.Invalid("Licence invalide");
@@ -44,7 +48,7 @@ public static class LicenseValidator
     }
 
     /// <summary>
-    /// Validates a license and enforces its signed version constraints.
+    /// Validates a signed plugin license and version constraints; UUID refusal preserves its AR support code.
     /// </summary>
     public static LicenseValidationResult Validate(
         string licenseContent,
@@ -140,6 +144,10 @@ public static class LicenseValidator
 
             return Validate(File.ReadAllText(licensePath), pluginId);
         }
+        catch (MachineIdentityRefusedException ex)
+        {
+            return LicenseValidationResult.Invalid(ex.Message);
+        }
         catch
         {
             return LicenseValidationResult.Invalid("Licence invalide");
@@ -231,11 +239,13 @@ public static class LicenseValidator
             }
         }
 
+        // TKT-002552: like the principal license (AllowedVersions "1.*", maxMajorVersion), a plugin license
+        // covers every installed version whose major does not exceed the signed major; both stay strictly parsed.
         if (!string.IsNullOrWhiteSpace(signedPluginVersion))
         {
             if (!TryParseVersion(signedPluginVersion, out var licensed) ||
                 !TryParseVersion(currentPluginVersion, out var current) ||
-                CompareVersions(current, licensed) != 0)
+                current[0] > licensed[0])
             {
                 error = "Version du plugin incompatible avec la licence";
                 return false;

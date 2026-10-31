@@ -8,12 +8,22 @@ namespace SipLine.Plugin.Sdk.Licensing;
 public static class HardwareFingerprint
 {
     /// <summary>
-    /// Gets the unique hardware identifier in the official 16-character hexadecimal format.
+    /// Gets the UUID-derived 16-character uppercase hexadecimal identity.
+    /// Throws MachineIdentityRefusedException on UUID refusal; no fallback identity is produced.
     /// </summary>
+    /// <returns>The accepted canonical SDK hardware identifier.</returns>
+    /// <exception cref="MachineIdentityRefusedException">SMBIOS UUID evidence is missing or refused by SDK policy.</exception>
     public static string GetHardwareId()
     {
-        return HardwareInfo.GetHardwareId();
+        var identity = Resolve();
+        if (!identity.IsAccepted) throw new MachineIdentityRefusedException(identity);
+        return identity.HardwareId!;
     }
+
+    /// <summary>Resolves the official UUID contract without throwing on a refused device.</summary>
+    /// <returns>The SDK result including an accepted identifier or stable refusal/support codes.</returns>
+    /// <remarks>Reads local machine evidence only and never supplies a legacy fallback.</remarks>
+    public static MachineIdentityResult Resolve() => MachineIdentity.Resolve();
 
     /// <summary>
     /// Gets the hardware identifier formatted for display (for example, A1B2-C3D4...).
