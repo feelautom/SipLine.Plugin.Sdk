@@ -1,6 +1,6 @@
 # SipLine Plugin SDK — API Reference
 
-> **SDK Version:** 1.3.0 · **Target:** .NET 9.0 Windows
+> **SDK Version:** 1.4.1 · **Target:** .NET 9.0 Windows
 
 This document is the complete API reference for the SipLine Plugin SDK. It covers every
 interface, method, property, and event exposed to plugins, along with the access level
@@ -44,6 +44,14 @@ SipLine distinguishes three plugin types via `ISipLinePlugin.LicenseType`:
 - Use the logger and access the plugin data folder
 - Use the localization API
 - Access the full UI theming system
+
+### Rights granted by user consent (SDK 1.4)
+
+Since SDK 1.4, a Community plugin can ask the user for some of the rights below with
+`context.RequestPermissionsAsync(...)`: call history (read), contacts (read), call control, SIP line
+settings and diagnostics. SipLine shows one consent window and remembers the answer. A Commercial
+plugin keeps its call history, contacts and call control access without asking. See
+[SDK 1.4: rights by consent, line settings and diagnostics](#sdk-14-rights-by-consent-line-settings-and-diagnostics).
 
 ### What requires a Commercial license ⭐
 
@@ -533,12 +541,58 @@ Browse icons at [lucide.dev/icons](https://lucide.dev/icons).
 
 ---
 
+## SDK 1.4: rights by consent, line settings and diagnostics
+
+### Rights by consent
+
+| Member | Description |
+|--------|-------------|
+| `PluginPermissions GrantedPermissions` | Rights currently granted to the plugin (flags) |
+| `Task<PluginPermissions> RequestPermissionsAsync(PluginPermissionRequest request)` | Shows the consent window once and returns the rights in force after the user's answer |
+| Event raised on rights change | Notifies the plugin when the user changes its rights in the settings |
+
+`PluginPermissions` flags: `CallHistoryRead`, `ContactsRead`, `CallControl` (4), `LineSettings` (8), `Diagnostics` (16), `All`.
+A member called without its right throws `PluginPermissionException`.
+
+SipLine accepts plugins built with SDK 1.3 up to the SDK version of the host. A plugin that uses SDK 1.4 members must declare
+the first SipLine version that ships SDK 1.4 as its `minAppVersion`.
+
+### `IPluginLineSettings`: SIP line settings (`context.LineSettings`, requires `LineSettings`)
+
+| Member | Description |
+|--------|-------------|
+| `IReadOnlyList<PluginSipAccount> GetAccounts()` | Copy of every SIP account, never with passwords |
+| `string? ActiveAccountId` | Active account used to place calls |
+| `Task<PluginSipAccount> UpdateAccountAsync(PluginSipAccountUpdate update)` | Changes or creates an account and saves it (null values are kept) |
+| `Task SetActiveAccountAsync(string accountId)` | Makes an enabled account the active one |
+| `Task<PluginRegistrationResult> ApplyAndWaitForRegistrationAsync(string? accountId, TimeSpan timeout, CancellationToken ct)` | Re-registers with the saved settings and waits for the registrar's real answer (1 to 120 s) |
+| `Task<PluginRegistrationTestResult> TestRegistrationAsync()` | Runs the authentication test of the settings screen |
+
+### `IPluginDiagnostics`: tests and support (`context.Diagnostics`, requires `Diagnostics`)
+
+Data is kept in memory only, in bounded buffers; secrets (passwords, SRTP keys) and personal identifiers are masked.
+
+| Member | Description |
+|--------|-------------|
+| `GetSipTrace(int maxCount = 100, string? callId = null)` | Most recent SIP messages, oldest first (1 to 500) |
+| `GetCallMedia(string? callId = null)` | Media and SRTP outcome of a call, or null |
+| `GetRegistrationEvents(int maxCount = 50)` | Most recent registration outcomes (1 to 200) |
+| `GetRecentLogs(int maxCount = 200)` | Most recent application log lines, masked (1 to 1000) |
+
+### Local network servers: `PluginLoopback` and `PluginPairingToken`
+
+A plugin that listens on a port must bind to `PluginLoopback.Address` (loopback only) and protect its clients with
+a pairing token: `PluginPairingToken.Create()` to issue it, `PluginPairingToken.Matches(expected, presented)` to check it
+in constant time. `PluginLoopback.IsLoopback(address)` tells whether a peer is local.
+
+---
+
 ## Testing
 
 Use the `SipLine.Plugin.Testing` NuGet package to write unit tests without running the host application.
 
 ```xml
-<PackageReference Include="SipLine.Plugin.Testing" Version="1.3.0" />
+<PackageReference Include="SipLine.Plugin.Testing" Version="1.4.1" />
 ```
 
 ```csharp

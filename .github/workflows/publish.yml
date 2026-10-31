@@ -1,13 +1,21 @@
-name: Publish SDK & Testing to NuGet.org
+name: Publish signed SDK & Testing to NuGet.org
+
+# The packages are built and signed (Authenticode DLLs + NuGet author signature, FEELAUTOM) on the
+# publisher's machine with Pack-Sdk.ps1, then attached to the GitHub release. This workflow never
+# rebuilds or re-signs them: it only verifies the attached files and pushes them unchanged.
+# An unsigned or wrongly signed package is refused (TKT-002889, TKT-002906).
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
+
+env:
+  # SHA-256 of the DER FEELAUTOM code-signing certificate (docs/CODE-SIGNING.md of the SipLine repository).
+  FEELAUTOM_CERT_SHA256: a1515dcdb473469bc226f0ddf94dad06e6edf7b21c0732444bf3b34de3b0cd33
 
 jobs:
   publish:
-    name: Publish to Registries
+    name: Publish signed packages
     runs-on: windows-2025
     timeout-minutes: 20
     permissions:
@@ -23,50 +31,60 @@ jobs:
 
       - name: Validate Release Tag
         shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           $version = (Get-Content sipline-sdk-version.txt -Raw).Trim()
           if ($version -notmatch '^\d+\.\d+\.\d+$') {
             throw "Invalid stable SDK version: $version"
           }
-          if ("v$version" -ne "${{ github.ref_name }}") {
-            throw "Tag ${{ github.ref_name }} does not match SDK version $version"
+          if ("v$version" -ne $env:RELEASE_TAG) {
+            throw "Release tag $env:RELEASE_TAG does not match SDK version $version"
           }
           "SDK_VERSION=$version" >> $env:GITHUB_ENV
 
-      # --- Build & Pack SDK ---
-      - name: Restore SDK
-        run: dotnet restore SipLine.Plugin.Sdk.csproj
+      - name: Download Signed Packages From The Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Force out | Out-Null
+          gh release download $env:RELEASE_TAG --repo "${{ github.repository }}" --pattern "*.nupkg" --dir out
+          $expected = @(
+            "SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg",
+            "SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg"
+          )
+          $actual = @(Get-ChildItem out -Filter *.nupkg -File | ForEach-Object Name | Sort-Object)
+          if (($actual -join '|') -ne (($expected | Sort-Object) -join '|')) {
+            throw "Expected exactly the two signed packages $($expected -join ', '), found: $($actual -join ', ')"
+          }
 
-      - name: Build SDK
-        run: dotnet build SipLine.Plugin.Sdk.csproj --configuration Release --no-restore
-
-      - name: Pack SDK
-        run: dotnet pack SipLine.Plugin.Sdk.csproj --configuration Release --no-build -o out
-
-      # --- Build & Pack Testing Lib ---
-      - name: Restore Testing Lib
-        run: dotnet restore SipLine.Plugin.Testing/SipLine.Plugin.Testing.csproj
-
-      - name: Build Testing Lib
-        run: dotnet build SipLine.Plugin.Testing/SipLine.Plugin.Testing.csproj --configuration Release --no-restore
-
-      - name: Pack Testing Lib
-        run: dotnet pack SipLine.Plugin.Testing/SipLine.Plugin.Testing.csproj --configuration Release --no-build -o out
-
-      - name: Verify Package Set
+      - name: Verify FEELAUTOM Author Signatures
         shell: pwsh
         run: |
-          $expected = @(
-            "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg",
-            "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg"
-          )
-          $actual = @(Get-ChildItem out -Filter *.nupkg -File)
-          if ($actual.Count -ne $expected.Count) {
-            throw "Expected exactly two packages, found $($actual.Count)."
+          foreach ($package in Get-ChildItem out -Filter *.nupkg -File) {
+            dotnet nuget verify --all $package.FullName --certificate-fingerprint $env:FEELAUTOM_CERT_SHA256
+            if ($LASTEXITCODE -ne 0) {
+              throw "$($package.Name) is not author-signed by FEELAUTOM: publication refused."
+            }
           }
-          foreach ($package in $expected) {
-            if (-not (Test-Path -LiteralPath $package)) {
-              throw "Missing expected package: $package"
+
+      - name: Verify Authenticode Signatures Of The Embedded Assemblies
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          foreach ($package in Get-ChildItem out -Filter *.nupkg -File) {
+            $extract = Join-Path $env:RUNNER_TEMP ($package.BaseName)
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $extract)
+            $dlls = @(Get-ChildItem $extract -Recurse -Filter *.dll -File)
+            if ($dlls.Count -eq 0) { throw "$($package.Name) contains no assembly." }
+            foreach ($dll in $dlls) {
+              $signature = Get-AuthenticodeSignature -FilePath $dll.FullName
+              if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch '(^|, )CN=FEELAUTOM(,|$)' -or -not $signature.TimeStamperCertificate) {
+                throw "$($dll.Name) in $($package.Name) is not a valid timestamped FEELAUTOM Authenticode signature: publication refused."
+              }
             }
           }
 
@@ -80,7 +98,7 @@ jobs:
             }
           }
 
-      - name: Push to NuGet.org
+      - name: Push Signed Packages To NuGet.org
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
@@ -89,11 +107,22 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
             throw "The NUGET_API_KEY secret is required for a public release."
           }
-          dotnet nuget push "out/SipLine.Plugin.Sdk.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to publish SipLine.Plugin.Sdk to NuGet.org."
+          foreach ($name in @("SipLine.Plugin.Sdk", "SipLine.Plugin.Testing")) {
+            dotnet nuget push "out/$name.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to publish $name to NuGet.org."
+            }
           }
-          dotnet nuget push "out/SipLine.Plugin.Testing.$env:SDK_VERSION.nupkg" --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json"
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to publish SipLine.Plugin.Testing to NuGet.org."
+
+      - name: Unlist The Unsigned 1.4.0 Packages
+        if: ${{ github.event.release.tag_name == 'v1.4.1' }}
+        shell: pwsh
+        continue-on-error: true
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          # 1.4.0 was published unsigned on 31/10/2026 by the previous workflow (TKT-002889). A key without the
+          # unlist scope only fails this step; the signed 1.4.1 stays published.
+          foreach ($name in @("SipLine.Plugin.Sdk", "SipLine.Plugin.Testing")) {
+            dotnet nuget delete $name 1.4.0 --api-key $env:NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --non-interactive
           }
